@@ -49,9 +49,9 @@ namespace CIntSharp.DataStructures.Native
         /// </summary>
         public int reserved = 0;
 
-        public void Reset()
+        public void Reset(int atomNumber = 0)
         {
-            charge = 0;
+            charge = atomNumber;
             pointerForCoords = 0;
             NuclearModel = NuclearModelKind.PointNuclear;
             pointerForZeta = 0;

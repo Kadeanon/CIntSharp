@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,8 +12,11 @@ namespace CintSharp.Native
 {
     public class DllHandler : SafeHandleZeroOrMinusOneIsInvalid
     {
-
-        public Dictionary<string, Delegate> ApiDict { get; }
+        /// <summary>
+        /// Dictionary to store the libcint dll. Default is empty string to local default direction.
+        /// </summary>
+        public static string LibcintPath { get; set; } = "";
+        public ConcurrentDictionary<string, Delegate> ApiDict { get; }
 
         public DllHandler(string dllName) : base(true)
         {
@@ -62,13 +66,13 @@ namespace CintSharp.Native
         /// Convert the function pointer to a delegate and store it in the dictionary.
         /// </summary>
         /// <typeparam name="TDelegate"> the type of the delegate to convert to</typeparam>
-        /// <param name="ApiName"> the name of function </param>
+        /// <param name="apiName"> the name of function </param>
         /// <returns> the delegate converted from the function </returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="System.ComponentModel.Win32Exception"></exception>
-        public TDelegate Invoke<TDelegate>(string ApiName) where TDelegate : Delegate
+        public TDelegate Invoke<TDelegate>(string apiName) where TDelegate : Delegate
         {
-            if (ApiDict.TryGetValue(ApiName, out var api))
+            if (ApiDict.TryGetValue(apiName, out var api))
             {
                 if (api is TDelegate dele)
                 {
@@ -83,12 +87,12 @@ namespace CintSharp.Native
             }
             else
             {
-                if (!NativeLibrary.TryGetExport(handle, ApiName, out var apiPointer))
+                if (!NativeLibrary.TryGetExport(handle, apiName, out var apiPointer))
                 {
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), ApiName);
+                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), apiName);
                 }
                 var apiDele = Marshal.GetDelegateForFunctionPointer<TDelegate>(apiPointer);
-                ApiDict.Add(ApiName, apiDele);
+                ApiDict.TryAdd(apiName, apiDele);
                 return apiDele;
             }
         }

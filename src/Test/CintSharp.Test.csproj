@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="6.0.0-beta1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CintSharp\CintSharp.csproj" />
   </ItemGroup>
 
