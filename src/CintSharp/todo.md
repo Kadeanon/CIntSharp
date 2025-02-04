@@ -2,9 +2,9 @@
 
 提供一个基础SCF程序所需的最少内容：
 
-- [ ] 实现bse的基组json文件解析器
-- [ ] 实现libcint输入数据的组装
-- [ ] 实现hcore,ovlp和eri的积分计算
+- [x] 实现bse的基组json文件解析器
+- [x] 实现libcint输入数据的组装
+- [x] 实现hcore,ovlp和eri的积分计算
 
 #### 长远目标
 
