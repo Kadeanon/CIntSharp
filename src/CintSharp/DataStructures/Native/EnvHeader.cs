@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CIntSharp.DataStructures.Native
+namespace CintSharp.DataStructures.Native
 {
     [StructLayout(LayoutKind.Sequential, Size = 20)]
     public struct EnvHeader

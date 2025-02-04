@@ -16,7 +16,7 @@ namespace CintSharp.Intor
         {
         }
 
-        public override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
+        protected override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             int nshl = shellLength.Length;

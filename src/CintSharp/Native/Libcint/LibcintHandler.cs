@@ -1,5 +1,5 @@
 ﻿using CintSharp.DataStructures;
-using CIntSharp.DataStructures.Native;
+using CintSharp.DataStructures.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,13 +29,15 @@ namespace CintSharp.Native.Libcint
 
         public static LibcintHandler Instance { get; private set; }
 
-        public delegate double CINTgto_normaler(int angMomentum, double v);
+        delegate double CintGtoNormaler(int angMomentum, double v);
 
-        public delegate void CintOptimizer(out IntPtr opt, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env);
+        public delegate void OptimizerCreator(out IntPtr opt, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env);
 
-        public delegate int CintIntor(double[] output, int[] dims, int[] shls, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env, IntPtr opt, double[] cache);
+        public delegate void OptimizerDestroyer(in IntPtr opt);
 
-        CINTgto_normaler? CINTgto_normDelegate;
+        public delegate int Intor(double[] output, int[] dims, int[] shls, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env, IntPtr opt, double[] cache);
+
+        CintGtoNormaler? CINTgto_normDelegate;
 
         public static double CINTgto_norm(int angMomentum, double exp)
         {
@@ -44,7 +46,7 @@ namespace CintSharp.Native.Libcint
                 throw new InvalidOperationException("The LibcintHandler is not initialized.");
             }
 
-            Instance.CINTgto_normDelegate ??= Instance.Invoke<CINTgto_normaler>("CINTgto_norm");
+            Instance.CINTgto_normDelegate ??= Instance.Invoke<CintGtoNormaler>("CINTgto_norm");
 
             return Instance.CINTgto_normDelegate(angMomentum, exp);
         }
@@ -57,7 +59,7 @@ namespace CintSharp.Native.Libcint
             }
             try
             {
-                Instance.Invoke<CintOptimizer>(apiName)(out nint opt, envs.Atms, envs.Natm, envs.Bases, envs.Nbas, envs.Envs);
+                Instance.Invoke<OptimizerCreator>(apiName)(out nint opt, envs.Atms, envs.Natm, envs.Bases, envs.Nbas, envs.Envs);
                 return opt;
             }
             catch (Exception e) 
@@ -66,21 +68,37 @@ namespace CintSharp.Native.Libcint
             }
         }
 
+        public static void ReleaseOptimizer(IntPtr opt) 
+        {
 
-        public static CintIntor CreateIntor(CIntEnvs envs, string apiName)
+            if (Instance == null)
+            {
+                throw new InvalidOperationException("The LibcintHandler is not initialized.");
+            }
+            try
+            {
+                Instance.Invoke<OptimizerDestroyer>("CINTdel_optimizer")(opt);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException($"Failed to destroy optimizer: {e.Message}", e);
+            }
+        }
+
+        public static Intor CreateIntor(CIntEnvs envs, string apiName)
         {
             if (Instance == null)
             {
                 throw new InvalidOperationException("The LibcintHandler is not initialized.");
             }
-            CintIntor calculator;
+            Intor calculator;
             try
             {
-                return Instance.Invoke<CintIntor>(apiName); 
+                return Instance.Invoke<Intor>(apiName); 
             }
             catch (Exception e)
             {
-                throw new InvalidOperationException($"Failed to create optimizer for {apiName}: {e.Message}", e);
+                throw new InvalidOperationException($"Failed to create intor for {apiName}: {e.Message}", e);
             }
         }
     }

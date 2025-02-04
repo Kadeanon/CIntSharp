@@ -1,4 +1,4 @@
-﻿using CIntSharp.DataStructures.Native;
+﻿using CintSharp.DataStructures.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;

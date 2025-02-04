@@ -22,7 +22,7 @@ namespace CintSharp.Test
                 new Atom("H", 0.0, 1.0, 0.0)
                 ];
             CIntEnvs cintor = CIntEnvs.Create(list, atm => "sto-3g");
-            IntorBase ovlp = cintor.Intor("int1e_ovlp");
+            IntorBase ovlp = cintor.CreateIntor("int1e_ovlp");
             Tensor<double> result = ovlp.Invoke();
             double[][] standard = 
                 [[1.00000002,0.23670394,.0         , .0         ,.0         ,0.14130744, 0.14130744],

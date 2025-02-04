@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CIntSharp.DataStructures.Native
+namespace CintSharp.DataStructures.Native
 {
     public struct Bas
     {

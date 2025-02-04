@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace CintSharp.Intor
 {
-    public abstract class IntorBase
+    public abstract class IntorBase : IDisposable
     {
         protected CIntEnvs Envs { get; }
 
         protected string IntorName { get; }
 
-        protected nint Optimizer { get; }
+        protected nint Optimizer { get; private set; }
 
         public IntorBase(CIntEnvs envs, string intorName)
         {
@@ -44,6 +44,16 @@ namespace CintSharp.Intor
             ArrayPool<int>.Shared.Return(shellLength);
             return result;
         }
-        public abstract Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength);
+
+        protected abstract Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength);
+
+        public void Dispose()
+        {
+            if(Optimizer != nint.Zero) 
+            {
+                LibcintHandler.ReleaseOptimizer(Optimizer);
+                Optimizer = nint.Zero;
+            }
+        }
     }
 }

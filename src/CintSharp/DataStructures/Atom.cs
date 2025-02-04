@@ -1,4 +1,4 @@
-﻿using CIntSharp.DataStructures.Native;
+﻿using CintSharp.DataStructures.Native;
 using NCDK;
 using NCDK.Default;
 using NCDK.Numerics;

@@ -1,7 +1,7 @@
 ﻿using CintSharp.BasisParser;
 using CintSharp.DataStructures;
 using CintSharp.Native.Libcint;
-using CIntSharp.DataStructures.Native;
+using CintSharp.DataStructures.Native;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

@@ -1,6 +1,6 @@
 ﻿using CintSharp.BasisParser;
+using CintSharp.DataStructures.Native;
 using CintSharp.Intor;
-using CIntSharp.DataStructures.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace CintSharp.DataStructures
         public static CIntEnvs Create(List<Atom> atoms, Func<Atom, string> basisNameSetter, IBasisParser parser = null) 
             => new EnvBuilder(atoms, parser).SetBasis(basisNameSetter).Build();
 
-        public IntorBase Intor(string intorName) 
+        public IntorBase CreateIntor(string intorName) 
         {
             if (intorName.StartsWith("int1e"))
             {
@@ -50,13 +50,19 @@ namespace CintSharp.DataStructures
             }
         }
 
-        public Tensor<double> GetOvlp() => Intor("int1e_ovlp").Invoke();
+        public Tensor<double> InvokeIntor(string intorName) 
+        {
+            using var intor = CreateIntor(intorName);
+            return intor.Invoke();
+        }
 
-        public Tensor<double> GetKin() => Intor("int1e_kin").Invoke();
+        public Tensor<double> GetOvlp() => InvokeIntor("int1e_ovlp");
 
-        public Tensor<double> GetNuc() => Intor("int1e_nuc").Invoke();
+        public Tensor<double> GetKin() => InvokeIntor("int1e_kin");
 
-        public Tensor<double> GetERI() => Intor("int2e").Invoke();
+        public Tensor<double> GetNuc() => InvokeIntor("int1e_nuc");
+
+        public Tensor<double> GetERI() => InvokeIntor("int2e");
 
         public Tensor<double> GetHCore() => 
             Tensor.Add(GetKin().AsReadOnlyTensorSpan(), GetNuc());

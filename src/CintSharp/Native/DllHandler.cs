@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -72,29 +71,19 @@ namespace CintSharp.Native
         /// <exception cref="System.ComponentModel.Win32Exception"></exception>
         public TDelegate Invoke<TDelegate>(string apiName) where TDelegate : Delegate
         {
-            if (ApiDict.TryGetValue(apiName, out var api))
-            {
-                if (api is TDelegate dele)
+            var api = ApiDict.GetOrAdd(apiName,
+                name =>
                 {
-                    return dele;
-                }
-                else
-                {
-                    throw new ArgumentException("The ApiName is already in the dictionary, " +
-                        "but the type is not the same as the type of the delegate to convert to." +
-                        $"The api is a {api.GetType().Name} but is expected as a {typeof(TDelegate).Name} delegate.");
-                }
-            }
-            else
-            {
-                if (!NativeLibrary.TryGetExport(handle, apiName, out var apiPointer))
-                {
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), apiName);
-                }
-                var apiDele = Marshal.GetDelegateForFunctionPointer<TDelegate>(apiPointer);
-                ApiDict.TryAdd(apiName, apiDele);
-                return apiDele;
-            }
+                    if (!NativeLibrary.TryGetExport(handle, name, out var apiPointer))
+                    {
+                        throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), name);
+                    }
+                    return Marshal.GetDelegateForFunctionPointer<TDelegate>(apiPointer);
+                });
+            return api as TDelegate ??
+                throw new ArgumentException("The ApiName is already in the dictionary, " +
+                    "but the type is not the same as the type of the delegate to convert to." +
+                    $"The api is a {api.GetType().Name} but is expected as a {typeof(TDelegate).Name} delegate.");
         }
     }
 }

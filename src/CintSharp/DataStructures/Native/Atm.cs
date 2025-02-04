@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CIntSharp.DataStructures.Native
+namespace CintSharp.DataStructures.Native
 {
     /// <summary>
     /// Atoms的结构体，存储必要的原子信息以提供给libcint库使用
