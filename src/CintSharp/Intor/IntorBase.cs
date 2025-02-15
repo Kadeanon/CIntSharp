@@ -18,8 +18,17 @@ namespace CintSharp.Intor
 
         protected nint Optimizer { get; private set; }
 
+        protected int Components { get; }
+
+        protected IntorUtils.IntorType type;
+
         public IntorBase(CIntEnvs envs, string intorName)
         {
+            Components = IntorUtils.GetIntorComp(ref intorName, out type);
+            if(Components == 0)
+            {
+                throw new ArgumentException($"The intor name {intorName} is not supported.");
+            }
             Envs = envs;
             IntorName = intorName;
             Optimizer = LibcintHandler.GetOptimizer(Envs, $"{IntorName}_optimizer");

@@ -1,23 +1,22 @@
 ﻿using CintSharp.DataStructures;
+using CintSharp.Intor;
 using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Numerics;
 using System.Numerics.Tensors;
 using System.Text;
 using System.Threading.Tasks;
 
-using Vector = MathNet.Numerics.LinearAlgebra.Vector<double>;
-
-namespace CintSharp.Test
+namespace CintSharp.Test.Methods
 {
-    [TestClass]
-    public class ExampleHF
+    internal class RHF
     {
-        public List<Atom> Atoms { get; set; }
 
-        public CIntEnvs H2OEnvs { get; set; }
+        public List<Atom> Atoms { get;  }
+
+        public CIntEnvs Envs { get; }
 
         public Matrix<double> Ovlp { get; set; }
 
@@ -31,11 +30,11 @@ namespace CintSharp.Test
 
         public Matrix<double> P { get; set; }
 
-        public Matrix<double> G{get; set;}
+        public Matrix<double> G { get; set; }
 
         public Matrix<double> C { get; set; }
 
-        public Matrix<double> FockMatrix{get; set;}
+        public Matrix<double> FockMatrix { get; set; }
 
         public double[] es { get; set; }
 
@@ -48,7 +47,7 @@ namespace CintSharp.Test
         {
             get
             {
-                int nao = H2OEnvs.NAO;
+                int nao = Envs.NAO;
                 double d = 0;
                 for (int i = 0; i < nao; i++)
                 {
@@ -79,37 +78,39 @@ namespace CintSharp.Test
             }
         }
 
-
-        [TestMethod]
-        public void RunHF() 
+        public RHF(List<Atom> atoms, string name)
         {
-            InitExample();
-            Conver();
-            Assert.AreEqual(-73.45549594, TotalEnergy, 1e-8);
+            Atoms = atoms;
+            Envs = CIntEnvs.Create(atoms, atm => name);
+            InitParams();
         }
 
-        public void InitExample()
+        public double Run()
         {
-            CreateH2OEnvs();
-            int nao = H2OEnvs.NAO;
-            Ovlp = Tensor2Matrix(H2OEnvs.GetOvlp());
-            HCore = Tensor2Matrix(H2OEnvs.GetHCore());
-            ERI = H2OEnvs.GetERI();
+            Conver();
+            return TotalEnergy;
+        }
+
+        [MemberNotNull(
+            nameof(Ovlp), 
+            nameof(HCore), 
+            nameof(ERI), 
+            nameof(X), 
+            nameof(XH), 
+            nameof(P), 
+            nameof(G), 
+            nameof(FockMatrix))]
+        public void InitParams()
+        {
+            int nao = Envs.NAO;
+            Ovlp = Tensor2Matrix(Envs.GetOvlp());
+            HCore = Tensor2Matrix(Envs.GetHCore());
+            ERI = Envs.GetERI();
             X = ReverseSqrt(Ovlp);
             XH = X.Transpose();
             P = Matrix<double>.Build.Dense(nao, nao);
             GeneralGMatrix();
             FockMatrix = HCore + G;
-        }
-
-        public void CreateH2OEnvs() 
-        {
-            Atoms = [
-                new Atom("O", 0.0, 0.0, 0.0),
-                new Atom("H", 0.0, 0.0, 1.0),
-                new Atom("H", 0.0, 1.0, 0.0)
-                ];
-            H2OEnvs = CIntEnvs.Create(Atoms, atm => "sto-3g");
         }
 
         public static Matrix<double> Tensor2Matrix(Tensor<double> tensor)
@@ -141,10 +142,11 @@ namespace CintSharp.Test
             return result;
         }
 
+        [MemberNotNull(nameof(G))]
         public void GeneralGMatrix()
         {
             int basisLength = P.RowCount;
-            G = Matrix<double>.Build.SameAs(P);
+            G = Matrix<double>.Build.Dense(basisLength, basisLength);
             for (int u = 0; u < basisLength; u++)
             {
                 for (int v = 0; v < basisLength; v++)
@@ -163,19 +165,22 @@ namespace CintSharp.Test
             }
         }
 
-        public void GeneralPMatrix()
+        [MemberNotNull(nameof(P))]
+        private void GeneralPMatrix()
         {
             int occ = Atoms.Sum(atom => atom.AtomNumber) / 2;
-            P = Matrix<double>.Build.SameAs(C);
+            P = Matrix<double>.Build.Dense(C.RowCount, C.ColumnCount);
 
             for (int i = 0; i < C.ColumnCount; i++)
             {
                 for (int j = 0; j < C.ColumnCount; j++)
                 {
+                    var ij = 0.0;
                     for (int index = 0; index < occ; index++)
                     {
-                        P[i, j] += 2 * C[i, index] * C[j, index];
+                        ij += 2 * C[i, index] * C[j, index];
                     }
+                    P[i,j] = ij;
                 }
             }
         }
@@ -224,7 +229,7 @@ namespace CintSharp.Test
 
         public void SortEvd()
         {
-            Dictionary<double, Vector> evd = new();
+            Dictionary<double, Vector<double>> evd = new();
             for (int i = 0; i < es.Length; i++)
             {
                 evd.Add(es[i], C.Column(i));

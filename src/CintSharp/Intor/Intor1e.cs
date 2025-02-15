@@ -10,10 +10,14 @@ using System.Threading.Tasks;
 
 namespace CintSharp.Intor
 {
-    public class Intor1e : IntorBase
+    public sealed class Intor1e : IntorBase
     {
         public Intor1e(CIntEnvs envs, string intorName) : base(envs, intorName)
         {
+            if (type != IntorUtils.IntorType.Spheric)
+            {
+                throw new ArgumentException($"The intor type of {intorName} is not spheric.");
+            }
         }
 
         protected override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
@@ -31,8 +35,9 @@ namespace CintSharp.Intor
                     maxLength = shellLength[i];
                 }
             }
-            Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO]);
+            Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO, Components]);
             maxLength *= maxLength;
+            maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
             int[] dims = ArrayPool<int>.Shared.Rent(2);
@@ -47,13 +52,16 @@ namespace CintSharp.Intor
                     int lengthJ = shellLength[j];
                     dims[1] = lengthJ;
                     shls[1] = j;
-                    var resultChunk = result.AsTensorSpan(ranges[i], ranges[j]);
+                    var resultChunk = result.AsTensorSpan(ranges[i], ranges[j], ..);
                     intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
                     for (int i2 = 0; i2 < lengthI; i2++)
                     {
                         for (int j2 = 0; j2 < lengthJ; j2++)
                         {
-                            resultChunk[i2, j2] = buffer[i2 + j2 * lengthI];
+                            for(int c = 0; c < Components; c++)
+                            {
+                                resultChunk[i2, j2, c] = buffer[i2 + j2 * lengthI];
+                            }
                         }
                     }
                 }
@@ -62,6 +70,10 @@ namespace CintSharp.Intor
             ArrayPool<double>.Shared.Return(buffer);
             ArrayPool<int>.Shared.Return(dims);
             ArrayPool<int>.Shared.Return(shls);
+            if(Components == 1) 
+            {
+                result = result.Reshape([Envs.NAO, Envs.NAO]);
+            }
             return result;
         }
     }

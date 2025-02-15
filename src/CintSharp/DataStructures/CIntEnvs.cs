@@ -1,10 +1,12 @@
 ﻿using CintSharp.BasisParser;
 using CintSharp.DataStructures.Native;
 using CintSharp.Intor;
+using NCDK.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics.Tensors;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -50,21 +52,45 @@ namespace CintSharp.DataStructures
             }
         }
 
-        public Tensor<double> InvokeIntor(string intorName) 
+        public Vector3 AtomCoord(int atomIndex) 
         {
-            using var intor = CreateIntor(intorName);
-            return intor.Invoke();
+            return Unsafe.As<double, Vector3>(ref Envs[Atms[atomIndex].pointerForCoords]);
         }
 
-        public Tensor<double> GetOvlp() => InvokeIntor("int1e_ovlp");
+        public HeaderRinvScope RinvAt(int atomIndex)
+        {
+            return new HeaderRinvScope(this, atomIndex);
+        }
 
-        public Tensor<double> GetKin() => InvokeIntor("int1e_kin");
+        public HeaderRinvScope RinvAt(Vector3 rinvOrigin)
+        {
+            return new HeaderRinvScope(this, rinvOrigin);
+        }
+    }
 
-        public Tensor<double> GetNuc() => InvokeIntor("int1e_nuc");
+    public readonly struct HeaderRinvScope : IDisposable 
+    {
+        public CIntEnvs Envs { get; }
 
-        public Tensor<double> GetERI() => InvokeIntor("int2e");
+        public readonly ref Vector3 Rinv => ref Envs.EnvHeader.RinvOrigin;
 
-        public Tensor<double> GetHCore() => 
-            Tensor.Add(GetKin().AsReadOnlyTensorSpan(), GetNuc());
+        public Vector3 RinvOrigin { get; }
+
+        public HeaderRinvScope(CIntEnvs envs, Vector3 rinvOrigin)
+        {
+            Envs = envs;
+            ref Vector3 rinv = ref Envs.EnvHeader.RinvOrigin;
+            RinvOrigin = rinv;
+            rinv = rinvOrigin;
+        }
+
+        public HeaderRinvScope(CIntEnvs envs, int atomIndex) : this(envs, envs.AtomCoord(atomIndex))
+        {
+        }
+
+        public void Dispose()
+        {
+            Envs.EnvHeader.RinvOrigin = RinvOrigin;
+        }
     }
 }
