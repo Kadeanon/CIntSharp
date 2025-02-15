@@ -35,7 +35,7 @@ namespace CintSharp.Native.Libcint
 
         public delegate void OptimizerDestroyer(in IntPtr opt);
 
-        public unsafe delegate int Intor(double[] output, int* dims, int* shls, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env, IntPtr opt, double[] cache);
+        public delegate int Intor(double[] output, ref int dims, ref int shls, Atm[] atm, int natm, Bas[] bas, int nbas, double[] env, IntPtr opt, double[] cache);
 
         CintGtoNormaler? CINTgto_normDelegate;
 

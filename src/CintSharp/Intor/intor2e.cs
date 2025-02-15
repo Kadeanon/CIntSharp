@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics.Tensors;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace CintSharp.Intor
             }
         }
 
-        protected unsafe override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
+        protected override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             int nshl = shellLength.Length;
@@ -40,8 +41,8 @@ namespace CintSharp.Intor
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
-            var dims = stackalloc int[4];
-            var shls = stackalloc int[4];
+            Span<int> dims = stackalloc int[4];
+            Span<int> shls = stackalloc int[4];
             for (int i = 0; i < nshl; i++)
             {
                 int lengthI = shellLength[i];
@@ -63,7 +64,7 @@ namespace CintSharp.Intor
                             dims[3] = lengthL;
                             shls[3] = l;
                             var resultChunk = result.AsTensorSpan(ranges[i], ranges[j], ranges[k], ranges[l], ..);
-                            intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
+                            intor.Invoke(buffer, ref MemoryMarshal.GetReference(dims), ref MemoryMarshal.GetReference(shls), Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
                             for (int i2 = 0; i2 < lengthI; i2++)
                             {
                                 for (int j2 = 0; j2 < lengthJ; j2++)
