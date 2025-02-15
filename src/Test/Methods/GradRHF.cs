@@ -146,18 +146,19 @@ namespace CintSharp.Test.Methods
             #region electronicEnergyDerivative
             overlapDerivativeMO = Tensor.Create<double>([length, Nao, Nao]);
             var fock_mo = AO2MO(coeff, fock);
+            Span<NRange> ranges = [NRange.All, NRange.All, NRange.All];
             for (int itotalDim = 0; itotalDim < length; itotalDim++)
             {
-                Span<NRange> ranges = [ new(itotalDim, itotalDim + 1), NRange.All, NRange.All];
+                ranges[0] = new NRange(itotalDim, itotalDim + 1);
                 var span = overlapDerivative.Slice(ranges);
                 span.SetSlice(AO2MO(coeff, span));
             }
 
             elecEnergyDerivative = Tensor.Create<double>([length]);
-            var sub1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            var sub2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            var sub3 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            var sub4 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
+            //var sub1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
+            //var sub2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
+            //var sub3 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
+            //var sub4 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
             var so_enum = Enumerable.Range(0, nocc).ToArray();
             for (var iatm = 0; iatm < Natm; iatm++)
             {
@@ -175,7 +176,7 @@ namespace CintSharp.Test.Methods
                             it += hamiltonianDerivative[t, i, j] * density[i, j];
                         }
                     }
-                    sub1[t] += it;
+                    elecEnergyDerivative[t] += it;
                 }
             }
             //sub2 = torch.einsum("duvkl,uv,kl -> d", eriDerivative, density, density);
@@ -211,7 +212,7 @@ namespace CintSharp.Test.Methods
                         id += kl[k, l] * dkl[d, k, l];
                     }
                 }
-                sub2[d] = id;
+                elecEnergyDerivative[d] += id / 2;
             }
             //sub3 = -torch.einsum("dukvl,uv,kl -> d", eriDerivative, density, density);
             var dukvl = eriDerivative;
@@ -243,7 +244,7 @@ namespace CintSharp.Test.Methods
                         id += kl[k, l] * dkl[d, k, l];
                     }
                 }
-                sub3[d] = id;
+                elecEnergyDerivative[d] -= id / 4;
             }
             //sub4 -= torch.einsum("dij, ij -> d", overlapDerivativeMO, fock_mo);
             var dij = overlapDerivativeMO;
@@ -258,9 +259,9 @@ namespace CintSharp.Test.Methods
                         id += dij[d, i, j] * ij[i, j];
                     }
                 }
-                sub4[d] = id;
+                elecEnergyDerivative[d] -= id * 2;
             }
-            elecEnergyDerivative = Vector2Tensor(sub1 + sub2 / 2 - sub3 / 4 - sub4 * 2);
+            //elecEnergyDerivative = Vector2Tensor(sub1 + sub2 / 2 - sub3 / 4 - sub4 * 2);
             nuclearRepulsionDerivative = Tensor.Create<double>([length]);
             #endregion
             #region nuclear repulsion derivative
@@ -294,7 +295,7 @@ namespace CintSharp.Test.Methods
             force = Tensor.Add(elecEnergyDerivative.AsReadOnlyTensorSpan(), nuclearRepulsionDerivative);
         }
 
-        private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, ReadOnlyTensorSpan<double> getter)
+        private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, Tensor<double> getter)
         {
             var dims = getter.Lengths;
             if (moCoeffs.Rank != 2) 
@@ -306,14 +307,18 @@ namespace CintSharp.Test.Methods
             {
                 throw new ArgumentException("The input matrix must be square.");
             }
+            if (getter.Lengths[0] == 1) 
+            {
+                getter = getter.Reshape(dims[1..]);
+                dims = getter.Lengths;
+            }
             foreach (var dim in dims)
             {
-                if (dim != length)
+                if(dim != length) 
                 {
                     throw new ArgumentException("The input matrix must have the same size as the moCoeffs.");
                 }
             }
-
             Tensor<double> temp1 = Tensor.Create<double>(dims);
             Tensor<double> temp2 = Tensor.Create<double>(dims);
 

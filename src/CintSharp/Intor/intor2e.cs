@@ -20,7 +20,7 @@ namespace CintSharp.Intor
             }
         }
 
-        protected override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
+        protected unsafe override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             int nshl = shellLength.Length;
@@ -40,8 +40,8 @@ namespace CintSharp.Intor
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
-            int[] dims = ArrayPool<int>.Shared.Rent(4);
-            int[] shls = ArrayPool<int>.Shared.Rent(4);
+            var dims = stackalloc int[4];
+            var shls = stackalloc int[4];
             for (int i = 0; i < nshl; i++)
             {
                 int lengthI = shellLength[i];
@@ -86,8 +86,6 @@ namespace CintSharp.Intor
             }
             ArrayPool<double>.Shared.Return(caches);
             ArrayPool<double>.Shared.Return(buffer);
-            ArrayPool<int>.Shared.Return(dims);
-            ArrayPool<int>.Shared.Return(shls);
             if (Components == 1)
             {
                 result = result.Reshape([Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO]);

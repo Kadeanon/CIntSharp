@@ -72,18 +72,20 @@ namespace CintSharp.Native
         public TDelegate Invoke<TDelegate>(string apiName) where TDelegate : Delegate
         {
             var api = ApiDict.GetOrAdd(apiName,
-                name =>
-                {
-                    if (!NativeLibrary.TryGetExport(handle, name, out var apiPointer))
-                    {
-                        throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), name);
-                    }
-                    return Marshal.GetDelegateForFunctionPointer<TDelegate>(apiPointer);
-                });
+                GetDelegate<TDelegate>);
             return api as TDelegate ??
                 throw new ArgumentException("The ApiName is already in the dictionary, " +
                     "but the type is not the same as the type of the delegate to convert to." +
                     $"The api is a {api.GetType().Name} but is expected as a {typeof(TDelegate).Name} delegate.");
+        }
+
+        private Delegate GetDelegate<TDelegate>(string apiName) where TDelegate : Delegate
+        {
+            if (!NativeLibrary.TryGetExport(handle, apiName, out var apiPointer))
+            {
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), apiName);
+            }
+            return Marshal.GetDelegateForFunctionPointer<TDelegate>(apiPointer);
         }
     }
 }
