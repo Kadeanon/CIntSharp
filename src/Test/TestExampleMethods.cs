@@ -34,7 +34,7 @@ namespace CintSharp.Test
             Assert.AreEqual(-73.45549594, totalEnergy, 1e-8);
         }
 
-        //[Ignore("This example code is not implemented yet.")]
+        [Ignore("This example code is not implemented yet.")]
         [TestMethod]
         public void TestGradRHF()
         {

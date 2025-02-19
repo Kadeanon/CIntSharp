@@ -1,7 +1,6 @@
 ﻿using CintSharp.BasisParser;
 using CintSharp.DataStructures.Native;
 using CintSharp.Intor;
-using NCDK.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;

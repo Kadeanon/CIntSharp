@@ -1,8 +1,4 @@
 ﻿using CintSharp.DataStructures.Native;
-using NCDK;
-using NCDK.Default;
-using NCDK.Numerics;
-using NCDK.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,18 +52,6 @@ namespace CintSharp.DataStructures
 
         public Atom(string atomSymbol, double x, double y, double z, string basisName = "")
             : this(SymbolToElement(atomSymbol), x, y, z, basisName) { }
-
-        public Atom(IAtom atom, string basisName = "")
-        {
-            Element = SymbolToElement(atom.Symbol);
-            Vector3? atomPosition = atom.Point3D;
-            if(!atomPosition.HasValue)
-            {
-                throw new ArgumentException("Atom does not have a 3d position");
-            }
-            position = atomPosition.Value;
-            BasisName = basisName;
-        }
 
         public void CopyToAtm(ref Atm atm, List<double> envs)
         {

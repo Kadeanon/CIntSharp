@@ -71,7 +71,7 @@ namespace CintSharp.Test.Methods
                     {
                         var a = Atoms[i];
                         var b = Atoms[j];
-                        result += a.AtomNumber * b.AtomNumber / (a.position - b.position).Length();
+                        result += a.AtomNumber * b.AtomNumber / (a.position - b.position).Length;
                     }
                 }
                 return result;

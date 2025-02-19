@@ -1,7 +1,6 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Intor;
 using MathNet.Numerics.LinearAlgebra;
-using NCDK.Numerics;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -283,9 +282,9 @@ namespace CintSharp.Test.Methods
                         var z_j = z_a[jatm];
                         var coor_j = ac[jatm];
                         var coor = coor_i - coor_j;
-                        var coorSpan = MemoryMarshal.CreateSpan(ref Unsafe.As<Vector3, double>(ref coor), 3);
+                        var coorSpan = coor.AsSpan();
                         var z_ij = z_i * z_j;
-                        value -= z_ij * coorSpan[idim] / Math.Pow(coor.Length(), 3);
+                        value -= z_ij * coorSpan[idim] / Math.Pow(coor.Length, 3);
                     }
 
                     nuclearRepulsionDerivative[totalDim] = value;
