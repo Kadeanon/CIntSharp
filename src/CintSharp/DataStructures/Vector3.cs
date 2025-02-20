@@ -25,9 +25,11 @@ namespace CintSharp.DataStructures
 
         public double Z { get; set; } = z;
 
+        internal ref double this[int index] => ref AsSpan()[index];
+
         public static Vector3 Zero { get; } = new(0, 0, 0);
 
-        public double Length => Math.Sqrt(this * this);
+        public readonly double Length => Math.Sqrt(this * this);
 
         public double LengthSq => this * this;
 

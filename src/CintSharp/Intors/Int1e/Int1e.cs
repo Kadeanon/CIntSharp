@@ -10,17 +10,17 @@ using System.Text;
 using System.Threading.Tasks;
 using static CintSharp.CintCommon;
 
-namespace CintSharp.Intors
+namespace CintSharp.Intors.Int1e
 {
     internal unsafe static class Int1e
     {
         /*
          * 1e GTO integral basic loop for < i|j>, no 1/r
          */
-        internal static bool CINT1e_loop(scoped ref double gctr, CINTEnvVars envs, ref Span<double> cache, FINT int1e_type)
+        internal static bool CINT1e_loop(scoped ref double gctr, CINTEnvVars envs, Span<double> cache, FINT int1e_type)
         {
             FINT[] shls = envs.shls;
-            Bas[] bas = envs.bas;
+            var bas = envs.bas;
             double[] env = envs.env;
             FINT i_sh = shls[0];
             FINT j_sh = shls[1];
@@ -28,17 +28,17 @@ namespace CintSharp.Intors
             FINT j_ctr = envs.x_ctr[1];
             FINT i_prim = bas[i_sh].numOfPrim;
             FINT j_prim = bas[j_sh].numOfPrim;
-            Span<double> ai = MemoryMarshal.CreateSpan(ref env[bas[i_sh].pointerOfExps], i_prim);
-            Span<double> aj = MemoryMarshal.CreateSpan(ref env[bas[j_sh].pointerOfExps], j_prim);
-            Span<double> ci = MemoryMarshal.CreateSpan(ref env[bas[i_sh].pointerOfCoeff], i_prim);
-            Span<double> cj = MemoryMarshal.CreateSpan(ref env[bas[j_sh].pointerOfCoeff], i_prim);
+            var ai = MemoryMarshal.CreateSpan(ref env[bas[i_sh].pointerOfExps], i_prim);
+            var aj = MemoryMarshal.CreateSpan(ref env[bas[j_sh].pointerOfExps], j_prim);
+            var ci = MemoryMarshal.CreateSpan(ref env[bas[i_sh].pointerOfCoeff], i_prim);
+            var cj = MemoryMarshal.CreateSpan(ref env[bas[j_sh].pointerOfCoeff], i_prim);
             FINT n_comp = envs.ncomp_e1 * envs.ncomp_tensor;
 
             double expcutoff = envs.expcutoff;
             ref PairData pdata_ij = ref Unsafe.NullRef<PairData>();
             Misc.MALLOC_INSTACK(ref cache, out Span<double> log_maxci, i_prim + j_prim);//TODO : check this for alignment
             Misc.MALLOC_INSTACK(ref cache, out Span<PairData> pdata_base, i_prim * j_prim);
-            Span<double> log_maxcj = log_maxci[i_prim..];
+            var log_maxcj = log_maxci[i_prim..];
             log_maxci = log_maxci[..i_prim];
             CINTOpt_log_max_pgto_coeff(log_maxci, ci, i_prim, i_ctr);
             CINTOpt_log_max_pgto_coeff(log_maxcj, cj, j_prim, j_ctr);
@@ -81,11 +81,11 @@ namespace CintSharp.Intors
             ref double g1 = ref MemoryMarshal.GetReference(cache);
             if (n_comp == 1)
             {
-                gctrj = ref gctr;
+                gctrj = gctr;
             }
             else
             {
-                gctrj = ref g1;
+                gctrj = g1;
                 g1 = ref Unsafe.Add(ref g1, lenj);
             }
             if (j_ctr == 1)
@@ -196,24 +196,24 @@ namespace CintSharp.Intors
         }
 
 
-        CACHE_SIZE_T int1e_cache_size(CINTEnvVars envs)
+        public static CACHE_SIZE_T int1e_cache_size(CINTEnvVars envs)
         {
-            FINT* shls = envs.shls;
-            FINT* bas = envs.bas;
-            FINT i_prim = bas[shls[0]].NPRIM_OF;
-            FINT j_prim = bas[shls[1]].NPRIM_OF;
-            FINT* x_ctr = envs.x_ctr;
+            FINT[] shls = envs.shls;
+            var bas = envs.bas;
+            FINT i_prim = bas[shls[0]].numOfPrim;
+            FINT j_prim = bas[shls[1]].numOfPrim;
+            FINT[] x_ctr = envs.x_ctr;
             FINT nc = envs.nf * x_ctr[0] * x_ctr[1];
             FINT n_comp = envs.ncomp_e1 * envs.ncomp_tensor;
             FINT leng = envs.g_size * 3 * ((1 << envs.gbits) + 1);
             FINT lenj = envs.nf * nc * n_comp;
             FINT leni = envs.nf * x_ctr[0] * n_comp;
             FINT len0 = envs.nf * n_comp;
-            FINT pdata_size = (i_prim * j_prim * 5
+            FINT pdata_size = i_prim * j_prim * 5
                                + i_prim * x_ctr[0]
                                + j_prim * x_ctr[1]
-                               + (i_prim + j_prim) * 2 + envs.nf * 3);
-            FINT cache_size = MAX(nc * n_comp + leng + lenj + leni + len0 + pdata_size,
+                               + (i_prim + j_prim) * 2 + envs.nf * 3;
+            FINT cache_size = Math.Max(nc * n_comp + leng + lenj + leni + len0 + pdata_size,
                                  nc * n_comp + envs.nf * 8 * OF_CMPLX);
             return cache_size;
         }
@@ -221,10 +221,11 @@ namespace CintSharp.Intors
         /*
          * 1e integrals <i|O|j> without 1/r
          */
-        CACHE_SIZE_T CINT1e_drv(Span<double> output, FINT* dims, CINTEnvVars envs,
-                       Span<double> cache, void (* f_c2s)(), FINT int1e_type)
+        public static int CINT1e_drv(Span<double> output, Span<FINT> dims, CINTEnvVars envs,
+                       Span<double> cache, Action f_c2s, FINT int1e_type)
         {
-            if (output.IsEmpty) {
+            if (output.IsEmpty)
+            {
                 return int1e_cache_size(envs);
             }
             FINT[] x_ctr = envs.x_ctr;
@@ -239,19 +240,19 @@ namespace CintSharp.Intors
             }
             Misc.MALLOC_INSTACK(ref cache, out Span<double> gctr, nc * n_comp);
 
-            FINT has_value = CINT1e_loop(gctr, envs, cache, int1e_type);
+            bool has_value = CINT1e_loop(ref gctr[0], envs, cache, int1e_type);
 
             Span<FINT> counts = stackalloc FINT[4];
-            if (dims == NULL)
+            if (dims.IsEmpty)
             {
                 dims = counts;
             }
-            if (f_c2s == &c2s_sph_1e)
+            if (f_c2s == c2s_sph_1e)
             {
                 counts[0] = (envs.i_l * 2 + 1) * x_ctr[0];
                 counts[1] = (envs.j_l * 2 + 1) * x_ctr[1];
             }
-            else if (f_c2s == &c2s_cart_1e)
+            else if (f_c2s == c2s_cart_1e)
             {
                 counts[0] = envs.nfi * x_ctr[0];
                 counts[1] = envs.nfj * x_ctr[1];
@@ -264,7 +265,7 @@ namespace CintSharp.Intors
             {
                 for (n = 0; n < n_comp; n++)
                 {
-                    f_c2s(output[nout * n], gctr + nc * n, dims, envs, cache);
+                    f_c2s(output[nout * n], gctr[nc * n], dims, envs, cache);
                 }
             }
             else
@@ -274,35 +275,35 @@ namespace CintSharp.Intors
                     c2s_dset0(output[nout * n], dims, counts);
                 }
             }
-            if(stack != null)
+            if (stack != null)
             {
                 ArrayPool<double>.Shared.Return(stack);
             }
-            return has_value;
+            return has_value ? 1 : 0;
         }
 
-        CACHE_SIZE_T CINT1e_spinor_drv(Complex * output, FINT* dims, CINTEnvVars envs,
-                               double* cache, void (* f_c2s)(), FINT int1e_type)
+        public static CACHE_SIZE_T CINT1e_spinor_drv(Span<Complex> output, Span<FINT> dims, CINTEnvVars envs,
+                               Span<double> cache, Action f_c2s, FINT int1e_type)
         {
-            if (out == NULL) {
+            if (output.IsEmpty)
+            {
                 return int1e_cache_size(envs);
             }
-            FINT* x_ctr = envs.x_ctr;
+            FINT[] x_ctr = envs.x_ctr;
             FINT nc = envs.nf * x_ctr[0] * x_ctr[1] * envs.ncomp_e1;
-            double* stack = NULL;
-            if (cache == NULL)
+            double[]? stack = null;
+            if (cache.IsEmpty)
             {
-                size_t cache_size = int1e_cache_size(envs);
-                stack = malloc(sizeof(double) * cache_size);
+                int cache_size = int1e_cache_size(envs);
+                stack = ArrayPool<double>.Shared.Rent(cache_size);
                 cache = stack;
             }
-            double* gctr;
-            MALLOC_INSTACK(gctr, nc * envs.ncomp_tensor);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> gctr, nc * envs.ncomp_tensor);
 
-            FINT has_value = CINT1e_loop(gctr, envs, cache, int1e_type);
+            bool has_value = CINT1e_loop(ref gctr[0], envs, cache, int1e_type);
 
-            FINT counts[4];
-            if (dims == NULL)
+            Span<FINT> counts = stackalloc FINT[4];
+            if (dims.IsEmpty)
             {
                 dims = counts;
             }
@@ -316,25 +317,25 @@ namespace CintSharp.Intors
             {
                 for (n = 0; n < envs.ncomp_tensor; n++)
                 {
-                    (*f_c2s)(out +nout * n, gctr + nc * n, dims, envs, cache);
+                    f_c2s(output[nout * n], gctr[nc * n], dims, envs, cache);
                 }
             }
             else
             {
                 for (n = 0; n < envs.ncomp_tensor; n++)
                 {
-                    c2s_zset0(out +nout * n, dims, counts);
+                    c2s_zset0(output[nout * n], dims, counts);
                 }
             }
 
-            if (stack != NULL)
+            if (stack != null)
             {
-                free(stack);
+                ArrayPool<double>.Shared.Return(stack);
             }
-            return has_value;
+            return has_value ? 1 : 0;
         }
 
-        static void make_g1e_gout(ref double gout, Span<double> g, Span<FINT> idx,
+        static void make_g1e_gout(Span<double> gout, Span<double> g, Span<FINT> idx,
                                   CINTEnvVars envs, bool empty, FINT int1e_type)
         {
             FINT ia;
@@ -352,7 +353,7 @@ namespace CintSharp.Intors
                     for (ia = 0; ia < envs.natm; ia++)
                     {
                         CINTg1e_nuc(g, envs, ia);
-                        envs.f_gout(gout, g, idx, envs, (empty && (ia == 0)));
+                        envs.f_gout(gout, g, idx, envs, empty && ia == 0);
                     }
                     break;
             }
@@ -423,73 +424,67 @@ namespace CintSharp.Intors
             }
         }
 
-        internal static CACHE_SIZE_T int1e_ovlp_sph(Span<double> output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_ovlp_sph(double[] output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
-            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 1, 1];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(&envs, ng, shls, atm, natm, bas, nbas, env);
+            Span<int> ng = [0, 0, 0, 0, 0, 1, 1, 1];
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e;
             return CINT1e_drv(output, dims, envs, cache, c2s_sph_1e, 0);
         }
 
-        internal static CACHE_SIZE_T int1e_ovlp_cart(double* output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_ovlp_cart(double[] output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
-            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 1, 1 ];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(envs, ng, shls, atm, natm, bas, nbas, env);
+            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 1, 1];
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e;
             return CINT1e_drv(output, dims, envs, cache, c2s_cart_1e, 0);
         }
 
-        internal static CACHE_SIZE_T int1e_ovlp_spinor(Complex output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_ovlp_spinor(Complex output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
-            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 1, 1 ];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(envs, ng, shls, atm, natm, bas, nbas, env);
+            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 1, 1];
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e;
             return CINT1e_spinor_drv(output, dims, envs, cache, c2s_sf_1e, 0);
         }
 
-        internal static void int1e_ovlp_optimizer(out CINTOpt* opt, FINT* atm, FINT natm,
+        internal static void int1e_ovlp_optimizer(out CINTOpt? opt, FINT* atm, FINT natm,
                                   FINT* bas, FINT nbas, double* env)
         {
             opt = null;
         }
 
-        internal static CACHE_SIZE_T int1e_nuc_sph(double* output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_nuc_sph(double[] output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
-            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 0, 1 ];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(envs, ng, shls, atm, natm, bas, nbas, env);
+            Span<FINT> ng = [0, 0, 0, 0, 0, 1, 0, 1];
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e_nuc;
             return CINT1e_drv(output, dims, envs, cache, c2s_sph_1e, 2);
         }
 
-        internal static CACHE_SIZE_T int1e_nuc_cart(double* output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_nuc_cart(double[] output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
             Span<FINT> ng = [0, 0, 0, 0, 0, 1, 0, 1];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(envs, ng, shls, atm, natm, bas, nbas, env);
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e_nuc;
             return CINT1e_drv(output, dims, &envs, cache, c2s_cart_1e, 2);
         }
 
-        internal static CACHE_SIZE_T int1e_nuc_spinor(Complex *output, FINT* dims, FINT* shls, FINT* atm, FINT natm,
-                             FINT* bas, FINT nbas, double* env, CINTOpt* opt, double* cache)
+        internal static CACHE_SIZE_T int1e_nuc_spinor(Complex[] output, FINT[] dims, FINT[] shls, Atm[] atm, FINT natm,
+                             Bas[] bas, FINT nbas, double[] env, CINTOpt[] opt, double[] cache)
         {
             Span<FINT> ng = [0, 0, 0, 0, 0, 1, 0, 1];
-            CINTEnvVars envs;
-            CINTinit_int1e_EnvVars(envs, ng, shls, atm, natm, bas, nbas, env);
+            CINTEnvVars envs = CINTEnvVars.FromInt1e(ng, shls, atm, natm, bas, nbas, env);
             envs.f_gout = CINTgout1e_nuc;
             return CINT1e_spinor_drv(output, dims, envs, cache, c2s_sf_1e, 2);
         }
 
-        internal static void int1e_nuc_optimizer(CINTOpt** opt, FINT* atm, FINT natm,
+        internal static void int1e_nuc_optimizer(CINTOpt* opt, FINT* atm, FINT natm,
                                   FINT* bas, FINT nbas, double* env)
         {
             *opt = null;

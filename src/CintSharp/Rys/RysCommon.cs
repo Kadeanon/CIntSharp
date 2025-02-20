@@ -16,7 +16,6 @@ namespace CintSharp.Rys
         internal const double SMALLX_LIMIT = 3e-7;
 
         // other boundaries
-        internal const int MXRYSROOTS = 32; // > ANG_MAX*2+1 for 4c2e
         internal const int ANG_MAX = 15; // l = 0..15
         internal const int LMAX1 = 16; // > ANG_MAX
         internal const int CART_MAX = 136; // > (ANG_MAX*(ANG_MAX+1)/2)

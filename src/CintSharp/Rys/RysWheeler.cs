@@ -3447,7 +3447,7 @@ quad.FromString("1.0"),
         }
 
         internal static int rys_wheeler_partial(int n, double* alpha, double* beta, double* moments,
-                                       double* roots, double* weights)
+                                       Span<double> roots, Span<double> weights)
         {
             double* a = stackalloc double[MXRYSROOTS + MXRYSROOTS + MXRYSROOTS * MXRYSROOTS];
             double* b = a + n;
@@ -3657,7 +3657,7 @@ quad.FromString("1.0"),
 
 
         internal static int lrys_wheeler_partial(int n, quad* alpha, quad* beta, quad* moments,
-                                        double* roots, double* weights)
+                                        Span<double> roots, Span<double> weights)
         {
             quad* a = stackalloc quad[MXRYSROOTS + MXRYSROOTS];
             quad* b = a + n;
@@ -3703,7 +3703,7 @@ quad.FromString("1.0"),
             return error;
         }
 
-        internal static int CINTrys_laguerre(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTrys_laguerre(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             double* moments = stackalloc double[MXRYSROOTS * 6];
             double* alpha = moments + n * 2;
@@ -3714,7 +3714,7 @@ quad.FromString("1.0"),
             return rys_wheeler_partial(n, alpha, beta, moments, roots, weights);
         }
 
-        internal static int CINTrys_jacobi(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTrys_jacobi(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             double* moments = stackalloc double[MXRYSROOTS * 2];
             fixed (double* alpha = JACOBI_ALPHA)
@@ -3737,7 +3737,7 @@ quad.FromString("1.0"),
             }
         }
 
-        internal static int CINTlrys_laguerre(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTlrys_laguerre(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             quad* moments = stackalloc quad[MXRYSROOTS * 6];
             quad* alpha = moments + n * 2;
@@ -3748,7 +3748,7 @@ quad.FromString("1.0"),
             return lrys_wheeler_partial(n, alpha, beta, moments, roots, weights);
         }
 
-        internal static int CINTlrys_jacobi(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTlrys_jacobi(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             quad* moments = stackalloc quad[MXRYSROOTS * 2];
             fixed (quad* alpha = lJACOBI_ALPHA)
@@ -6354,7 +6354,7 @@ quad.FromString("1.0"),
         }
 
         internal static int qrys_wheeler_partial(int n, __float128* alpha, __float128* beta, __float128* moments,
-                                        double* roots, double* weights)
+                                        Span<double> roots, Span<double> weights)
         {
             __float128* a = stackalloc __float128[MXRYSROOTS + MXRYSROOTS];
             __float128* b = a + n;
@@ -6399,7 +6399,7 @@ quad.FromString("1.0"),
             return error;
         }
 
-        internal static int CINTqrys_laguerre(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTqrys_laguerre(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             __float128* moments = stackalloc __float128[MXRYSROOTS * 6];
             __float128* alpha = moments + n * 2;
@@ -6410,7 +6410,7 @@ quad.FromString("1.0"),
             return qrys_wheeler_partial(n, alpha, beta, moments, roots, weights);
         }
 
-        internal static int CINTqrys_jacobi(int n, double x, double lower, double* roots, double* weights)
+        internal static int CINTqrys_jacobi(int n, double x, double lower, Span<double> roots, Span<double> weights)
         {
             __float128* moments = stackalloc __float128[MXRYSROOTS * 2];
             fixed (__float128* alpha = qJACOBI_ALPHA)

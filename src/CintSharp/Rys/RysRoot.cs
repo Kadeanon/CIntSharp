@@ -12,9 +12,9 @@ namespace CintSharp.Rys
 {
     internal unsafe static partial class RysRoot
     {
-        internal delegate int QuadratureFunction(int n, double x, double lower, double* roots, double* weights);
+        internal delegate int QuadratureFunction(int n, double x, double lower, Span<double> roots, Span<double> weights);
 
-        internal static int segment_solve(int n, double x, double lower, double* u, double* w,
+        internal static int segment_solve(int n, double x, double lower, Span<double> u, Span<double> w,
                                  double breakpoint, QuadratureFunction fn1, QuadratureFunction fn2)
         {
             int error;
@@ -33,7 +33,7 @@ namespace CintSharp.Rys
             return error;
         }
 
-        internal static void CINTrys_roots(int nroots, double x, double* u, double* w)
+        internal static void CINTrys_roots(int nroots, double x, Span<double> u, Span<double> w)
         {
             if (x <= SMALLX_LIMIT)
             {
@@ -113,7 +113,7 @@ namespace CintSharp.Rys
         /*
          * lower is the lower bound of the sr integral
          */
-        internal static int segment_solve1(int n, double x, double lower, double* u, double* w,
+        internal static int segment_solve1(int n, double x, double lower, Span<double> u, Span<double> w,
                                   double lower_bp1, double lower_bp2, double breakpoint,
                                   QuadratureFunction fn1, QuadratureFunction fn2, QuadratureFunction fn3)
         {
@@ -144,7 +144,7 @@ namespace CintSharp.Rys
             return error;
         }
 
-        internal static void CINTsr_rys_roots(int nroots, double x, double lower, double* u, double* w)
+        internal static void CINTsr_rys_roots(int nroots, double x, double lower, Span<double> u, Span<double> w)
         {
             int err = 1;
             switch (nroots)
@@ -304,7 +304,7 @@ namespace CintSharp.Rys
             }
         }
 
-        internal static int rys_root1(double X, double* roots, double* weights)
+        internal static int rys_root1(double X, Span<double> roots, Span<double> weights)
         {
             double Y, F1;
 
@@ -381,7 +381,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int rys_root2(double X, double* roots, double* weights)
+        internal static int rys_root2(double X, Span<double> roots, Span<double> weights)
         {
 
             double R12, R22, W22;
@@ -557,7 +557,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int rys_root3(double X, double* roots, double* weights)
+        internal static int rys_root3(double X, Span<double> roots, Span<double> weights)
         {
 
             double R13, R23, W23, R33, W33;
@@ -848,7 +848,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int rys_root4(double X, double* roots, double* weights)
+        internal static int rys_root4(double X, Span<double> roots, Span<double> weights)
         {
             double R14, R24, W24, R34, W34, R44, W44;
             double RT1, RT2, RT3, RT4, WW1, WW2, WW3, WW4;
@@ -1231,7 +1231,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int rys_root5(double X, double* roots, double* weights)
+        internal static int rys_root5(double X, Span<double> roots, Span<double> weights)
         {
             double R15, R25, W25, R35, W35, R45, W45, R55, W55;
             double RT1, RT2, RT3, RT4, RT5, WW1, WW2, WW3, WW4, WW5;
@@ -1835,7 +1835,7 @@ namespace CintSharp.Rys
          * and weights
          */
         internal static unsafe int _rdk_rys_roots(int nroots, double* fmt_ints,
-                                  double* roots, double* weights)
+                                  Span<double> roots, Span<double> weights)
         {
             int i, k, j, order;
             int nroots1 = nroots + 1;
@@ -1906,7 +1906,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static unsafe int CINTrys_schmidt(int nroots, double x, double lower, double* roots, double* weights)
+        internal static unsafe int CINTrys_schmidt(int nroots, double x, double lower, Span<double> roots, Span<double> weights)
         {
             double* fmt_ints = stackalloc double[MXRYSROOTS * 2];
             if (lower == 0)
@@ -2010,7 +2010,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static unsafe int CINTlrys_schmidt(int nroots, double x, double lower, double* roots, double* weights)
+        internal static unsafe int CINTlrys_schmidt(int nroots, double x, double lower, Span<double> roots, Span<double> weights)
         {
             int i, k, j, order, error;
             int nroots1 = nroots + 1;
@@ -2172,7 +2172,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int CINTqrys_schmidt(int nroots, double x, double lower, double* roots, double* weights)
+        internal static int CINTqrys_schmidt(int nroots, double x, double lower, Span<double> roots, Span<double> weights)
         {
             int i, k, j, order, error;
             int nroots1 = nroots + 1;

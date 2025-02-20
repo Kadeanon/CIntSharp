@@ -1,5 +1,6 @@
 ﻿global using FINT = int;
 global using CACHE_SIZE_T = int;
+global using static CintSharp.CintCommon;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace CintSharp
 {
     public static class CintCommon
     {
+        #region const
         public static readonly Version CINT_VERSION = new(6, 1, 1);
         public const int CINT_SOVERSION = 6;
 
@@ -124,6 +126,24 @@ namespace CintSharp
         internal const int GAUSSIAN_NUC = 2;
         internal const int FRAC_CHARGE_NUC = 3;
 
+        #endregion
+
+        #region config
+        internal const int IINC = 0;
+        internal const int JINC = 1;
+        internal const int KINC = 2;
+        internal const int LINC = 3;
+        internal const int GSHIFT = 4;
+        internal const int POS_E1 = 5;
+        internal const int POS_E2 = 6;
+        internal const int SLOT_RYS_ROOTS = 6;
+        internal const int TENSOR = 7;
+        internal const int EXPCUTOFF = 60;
+        // ~ 1e-15
+        internal const int MIN_EXPCUTOFF = 40;
+        internal const int OF_CMPLX = 2;
+        internal const int GRID_BLKSIZE = 104;
+        #endregion
 
         internal struct PairData
         {
@@ -131,7 +151,7 @@ namespace CintSharp
             public double eij;
             public double cceij;
         }
-        internal unsafe struct CINTOpt
+        internal unsafe class CINTOpt
         {
             FINT** index_xyz_array; // LMAX1**4 pointers to index_xyz
             FINT** non0ctr;
@@ -141,78 +161,20 @@ namespace CintSharp
             PairData** pairdata;  // NULL indicates not-initialized, NO_VALUE can be skipped
         }
 
-        internal unsafe class CINTEnvVars
-        {
-            internal Atm[] atm;
-            internal Bas[] bas;
-            internal double[] env;
-            internal FINT[] shls;
-            internal FINT natm;
-            internal FINT nbas;
+        internal static void CINTcart_comp(Span<FINT> nx, Span<FINT> ny, Span<FINT> nz, FINT lmax)
+{
+        FINT inc = 0;
+        FINT lx, ly, lz;
 
-            internal FINT i_l;
-            internal FINT j_l;
-            internal FINT k_l;
-            internal FINT l_l;
-            internal FINT nfi;  // number of cartesian components
-            internal FINT nfj;
-            // in int1e_grids, the grids_offset and the number of grids
-            internal FINT nfk;
-            internal FINT grids_offset;
-            internal FINT nfl;
-            internal FINT ngrids;
-            internal FINT nf;  // = nfi*nfj*nfk*nfl;
-            internal FINT rys_order; // = nrys_roots for regular ERIs. can be nrys_roots/2 for SR ERIs
-            internal FINT[] x_ctr;
-
-            internal FINT gbits;
-            internal FINT ncomp_e1; // = 1 if spin free, = 4 when spin included, it
-            internal FINT ncomp_e2; // corresponds to POSX,POSY,POSZ,POS1, see cint.h
-            internal FINT ncomp_tensor; // e.g. = 3 for gradients
-
-            /* values may diff based on the g0_2d4d algorithm */
-            internal FINT li_ceil; // power of x, == i_l if nabla is involved, otherwise == i_l
-            internal FINT lj_ceil;
-            internal FINT lk_ceil;
-            internal FINT ll_ceil;
-            internal FINT g_stride_i; // nrys_roots * shift of (i++,k,l,j)
-            internal FINT g_stride_k; // nrys_roots * shift of (i,k++,l,j)
-            internal FINT g_stride_l; // nrys_roots * shift of (i,k,l++,j)
-            internal FINT g_stride_j; // nrys_roots * shift of (i,k,l,j++)
-            internal FINT nrys_roots;
-            internal FINT g_size;  // ref to cint2e.c g = malloc(sizeof(double)*g_size)
-
-            internal FINT g2d_ijmax;
-            internal FINT g2d_klmax;
-            internal double common_factor;
-            internal double expcutoff;
-            internal Vector3 rirj; // diff by sign in different g0_2d4d algorithm
-            internal Vector3 rkrl;
-            internal double* rx_in_rijrx;
-            internal double* rx_in_rklrx;
-
-            internal double* ri;
-            internal double* rj;
-            internal double* rk;
-            // in int2e or int3c2e, the coordinates of the fourth shell
-            // in int1e_grids, the pointer for the grids coordinates
-            internal double[] rl;
-            internal double[] grids;
-
-            internal Func<FINT> f_g0_2e;
-            internal Action f_g0_2d4d;
-            internal Action<Span<double>, Span<double>, Span<FINT>, CINTEnvVars, bool> f_gout;
-            internal CINTOpt[] opt;
-
-            /* values are assigned during calculation */
-            internal int[] idx;
-            internal double ai;
-            internal double aj;
-            internal double ak;
-            internal double al;
-            internal double fac;
-            internal Vector3 rij;
-            internal Vector3 rkl;
-        }
+        for (lx = lmax; lx >= 0; lx--) {
+                for (ly = lmax - lx; ly >= 0; ly--) {
+                        lz = lmax - lx - ly;
+                        nx[inc] = lx;
+                        ny[inc] = ly;
+                        nz[inc] = lz;
+                        inc++;
+                }
+}
+}
     }
 }

@@ -65,6 +65,7 @@ namespace CintSharp.DataStructures.Native
     public enum NuclearModelKind : int
     {
         PointNuclear = 1,
-        GaussianNuclear = 2
+        GaussianNuclear = 2,
+        FracChargeNuclear = 3
     }
 }

@@ -706,7 +706,7 @@ namespace CintSharp.Rys
         }
 
         internal static int _compute_eigenvalues(int n, double* diag, double* diag_off1,
-                                        double* w, double* werr, double* wgap, double* work)
+                                        Span<double> w, double* werr, double* wgap, double* work)
         {
             double gl, gu;
             double eabs, eold, tmp, tmp1, dmax;
@@ -1249,7 +1249,7 @@ namespace CintSharp.Rys
         /* the eigenvectors of the tridiagonal matrix T = L D LT given L, D and the eigenv alues of L D LT. */
         /* TODO: Compute only the fist element of each eigenvectors */
         internal static int _compute_eigenvectors(int n, double* diag, double* diag_off1,
-                                         double* w, double* werr, double* wgap,
+                                         Span<double> w, double* werr, double* wgap,
                                          double* vec, double* work, int* iwork)
         {
             int i, j, k, icls, iter, idone, ndepth;
@@ -1571,7 +1571,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int _dlaev2(double* eig, double* vec, double* diag, double* diag_off1)
+        internal static int _dlaev2(Span<double> eig, double* vec, double* diag, double* diag_off1)
         {
             double a = diag[0];
             double b = diag_off1[0];
@@ -1655,7 +1655,7 @@ namespace CintSharp.Rys
             return 0;
         }
 
-        internal static int _CINTdiagonalize(int n, double* diag, double* diag_off1, double* eig, double* vec)
+        internal static int _CINTdiagonalize(int n, double* diag, double* diag_off1, Span<double> eig, double* vec)
         {
             if (n == 0)
             {
