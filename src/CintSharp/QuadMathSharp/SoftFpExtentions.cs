@@ -41,5 +41,29 @@ namespace QuadMathSharp
 
         [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
         public extern static int __getf2(Float128 a, Float128 b);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static Float128 __extendsftf2(float a);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static Float128 __extenddftf2(double a);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static float __trunctfsf2(Float128 a);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static double __trunctfdf2(Float128 a);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static double erf(double x);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static float erff(float x);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static double erfc(double x);
+
+        [DllImport("libgcc_s_seh-1", CallingConvention = CallingConvention.Cdecl)]
+        public extern static double erfcf(float x);
     }
 }

@@ -44,6 +44,14 @@ namespace QuadMathSharp
             int128Value = value;
         }
 
+        public static implicit operator Float128(double value) => SoftFpExtentions.__extenddftf2(value);
+
+        public static implicit operator Float128(float value) => SoftFpExtentions.__extendsftf2(value);
+
+        public static explicit operator double(Float128 value) => SoftFpExtentions.__trunctfdf2(value);
+
+        public static explicit operator float(Float128 value) => SoftFpExtentions.__trunctfsf2(value);
+
         internal ref T ByteMarshal<T>(int index) where T : unmanaged
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(index));
@@ -172,6 +180,16 @@ namespace QuadMathSharp
         public static __float128 CosPi(__float128 x)
         {
             return Cos(x * Pi);
+        }
+
+        public static __float128 Erf(__float128 x)
+        {
+            return QuadMathExtentions.erfq(x);
+        }
+
+        public static __float128 Erfc(__float128 x)
+        {
+            return QuadMathExtentions.erfcq(x);
         }
 
         public static __float128 Exp(__float128 x)
