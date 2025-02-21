@@ -251,7 +251,6 @@ namespace CintSharp.Intor
         public static Tensor<double> GetHCore(this CIntEnvs envs) =>
             Tensor.Add(envs.GetKin().AsReadOnlyTensorSpan(), envs.GetNuc());
 
-        public static Tensor<double> GetERI1(this CIntEnvs envs) => envs.InvokeIntor("int2e_ip1");
         #endregion
     }
 }

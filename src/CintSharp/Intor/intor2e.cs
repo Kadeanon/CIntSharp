@@ -39,10 +39,10 @@ namespace CintSharp.Intor
             Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO, Components]);
             maxLength = maxLength * maxLength * maxLength * maxLength;
             maxLength *= Components;
-            double[] caches = ArrayPool<double>.Shared.Rent(1024);
+            double[] caches = ArrayPool<double>.Shared.Rent(1024 * 512);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
-            Span<int> dims = stackalloc int[4];
-            Span<int> shls = stackalloc int[4];
+            int[] dims = ArrayPool<int>.Shared.Rent(4);
+            int[] shls = ArrayPool<int>.Shared.Rent(4);
             for (int i = 0; i < nshl; i++)
             {
                 int lengthI = shellLength[i];
@@ -63,8 +63,9 @@ namespace CintSharp.Intor
                             int lengthL = shellLength[l];
                             dims[3] = lengthL;
                             shls[3] = l;
-                            var resultChunk = result.AsTensorSpan(ranges[i], ranges[j], ranges[k], ranges[l], ..);
-                            intor.Invoke(buffer, ref MemoryMarshal.GetReference(dims), ref MemoryMarshal.GetReference(shls), Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
+                            var resultChunk = result.AsTensorSpan();
+                            intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
+                            resultChunk = resultChunk.Slice(ranges[i], ranges[j], ranges[k], ranges[l], ..);
                             for (int i2 = 0; i2 < lengthI; i2++)
                             {
                                 for (int j2 = 0; j2 < lengthJ; j2++)
@@ -85,6 +86,8 @@ namespace CintSharp.Intor
                     }
                 }
             }
+            ArrayPool<int>.Shared.Return(shls);
+            ArrayPool<int>.Shared.Return(dims);
             ArrayPool<double>.Shared.Return(caches);
             ArrayPool<double>.Shared.Return(buffer);
             if (Components == 1)

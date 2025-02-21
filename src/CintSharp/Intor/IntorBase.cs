@@ -14,25 +14,31 @@ namespace CintSharp.Intor
     public abstract class IntorBase : IDisposable
     {
         protected CIntEnvs Envs { get; }
+        private bool ShouldOptimize { get; }
 
         protected string IntorName { get; }
+        private nint optimizer;
 
-        protected nint Optimizer { get; private set; }
+        protected nint Optimizer => optimizer;
 
         protected int Components { get; }
 
         protected IntorUtils.IntorType type;
 
-        public IntorBase(CIntEnvs envs, string intorName)
+        public IntorBase(CIntEnvs envs, string intorName, bool shouldOpt = true)
         {
             Components = IntorUtils.GetIntorComp(ref intorName, out type);
             if(Components == 0)
             {
                 throw new ArgumentException($"The intor name {intorName} is not supported.");
             }
+            ShouldOptimize = shouldOpt;
             Envs = envs;
             IntorName = intorName;
-            Optimizer = LibcintHandler.GetOptimizer(Envs, $"{IntorName}_optimizer");
+            if (ShouldOptimize)
+            {
+                LibcintHandler.GetOptimizer(ref optimizer, Envs, $"{IntorName}_optimizer");
+            }
         }
 
         public Tensor<double> Invoke()
@@ -50,7 +56,7 @@ namespace CintSharp.Intor
                 lastOffset = currentOffset;
                 shellLength[i] = length;
             }
-            var result = InvokeKernal(shellLength.AsSpan(0, nshl));
+            Tensor<double> result = InvokeKernal(shellLength.AsSpan(0, nshl));
             ArrayPool<int>.Shared.Return(shellLength);
             return result;
         }
@@ -59,11 +65,12 @@ namespace CintSharp.Intor
 
         public void Dispose()
         {
-            if(Optimizer != nint.Zero) 
+            if(ShouldOptimize && optimizer != nint.Zero) 
             {
-                LibcintHandler.ReleaseOptimizer(Optimizer);
-                Optimizer = nint.Zero;
+                LibcintHandler.ReleaseOptimizer(ref optimizer);
+                optimizer = nint.Zero;
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

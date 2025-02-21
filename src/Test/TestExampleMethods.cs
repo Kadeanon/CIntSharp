@@ -34,9 +34,9 @@ namespace CintSharp.Test
             Assert.AreEqual(-73.45549594, totalEnergy, 1e-8);
         }
 
-        [Ignore("This example code is not implemented yet.")]
+        //[Ignore("This example code is not implemented yet.")]
         [TestMethod]
-        public void TestGradRHF()
+        public void TestGrad()
         {
             H2O = [
                 new Atom("O", 0.0, 0.0, 0.0),
@@ -45,10 +45,25 @@ namespace CintSharp.Test
                 ];
             BasisName = "sto-3g";
             RHF rhf = new(H2O, BasisName);
-            rhf.Run();
+            var totalEnergy = rhf.Run();
+            Assert.AreEqual(-73.45549594, totalEnergy, 1e-8);
             var grad = new GradRHF(rhf);
             var gradTensor = grad.Run();
-            Console.WriteLine(gradTensor.ToString());
+            PrintForce(gradTensor, grad.Natm);
+        }
+
+        public void PrintForce(Tensor<double> force, int natm)
+        {
+            StringBuilder sb = new();
+            for (int i = 0; i < natm; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    sb.Append($"{force[i * 3 + j]:F6} ");
+                }
+                sb.AppendLine();
+            }
+            Console.WriteLine(sb.ToString());
         }
     }
 }

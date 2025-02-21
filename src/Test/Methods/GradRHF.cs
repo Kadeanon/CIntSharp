@@ -71,6 +71,7 @@ namespace CintSharp.Test.Methods
             var int1e_ipnucl = mol.InvokeIntor("int1e_ipnuc");
             var z_a = RHF.Atoms.Select(atm => atm.AtomNumber).ToArray();
             #endregion
+            //return;
             #region overlapDerivativ and hamiltonianDerivative
             //derivatives in AO basis
             overlapDerivative = Tensor.Create<double>([length, nao, nao]);
@@ -109,6 +110,7 @@ namespace CintSharp.Test.Methods
                 }
             }
             #endregion
+            //return;
             #region eriDerivative
             var int2e_ip1 = mol.InvokeIntor("int2e_ip1");
             //var sum_int2e_ip1 = int2e_ip1.square().sum().ToDouble();
@@ -142,6 +144,7 @@ namespace CintSharp.Test.Methods
             //var sum_eri_1 = eri1_ao.abs().sum().ToDouble();//1594.7648127209497
             eriDerivative = eri1_ao;
             #endregion
+            
             #region electronicEnergyDerivative
             overlapDerivativeMO = Tensor.Create<double>([length, Nao, Nao]);
             var fock_mo = AO2MO(coeff, fock);
@@ -263,6 +266,7 @@ namespace CintSharp.Test.Methods
             //elecEnergyDerivative = Vector2Tensor(sub1 + sub2 / 2 - sub3 / 4 - sub4 * 2);
             nuclearRepulsionDerivative = Tensor.Create<double>([length]);
             #endregion
+            
             #region nuclear repulsion derivative
             for (var iatm = 0; iatm < Natm; iatm++)
             {
@@ -291,7 +295,11 @@ namespace CintSharp.Test.Methods
                 }
             }
             #endregion
-            force = Tensor.Add(elecEnergyDerivative.AsReadOnlyTensorSpan(), nuclearRepulsionDerivative);
+            
+            for (int i = 0; i < Natm * 3; i++) 
+            {
+                force[i] = elecEnergyDerivative[i] + nuclearRepulsionDerivative[i];
+            }
         }
 
         private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, Tensor<double> getter)
