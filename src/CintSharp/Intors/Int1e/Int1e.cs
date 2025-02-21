@@ -221,7 +221,7 @@ namespace CintSharp.Intors.Int1e
         /*
          * 1e integrals <i|O|j> without 1/r
          */
-        public static int CINT1e_drv(Span<double> output, Span<FINT> dims, CINTEnvVars envs,
+        internal static int CINT1e_drv(Span<double> output, Span<FINT> dims, CINTEnvVars envs,
                        Span<double> cache, Action f_c2s, FINT int1e_type)
         {
             if (output.IsEmpty)
@@ -282,7 +282,7 @@ namespace CintSharp.Intors.Int1e
             return has_value ? 1 : 0;
         }
 
-        public static CACHE_SIZE_T CINT1e_spinor_drv(Span<Complex> output, Span<FINT> dims, CINTEnvVars envs,
+        internal static CACHE_SIZE_T CINT1e_spinor_drv(Span<Complex> output, Span<FINT> dims, CINTEnvVars envs,
                                Span<double> cache, Action f_c2s, FINT int1e_type)
         {
             if (output.IsEmpty)
@@ -335,24 +335,24 @@ namespace CintSharp.Intors.Int1e
             return has_value ? 1 : 0;
         }
 
-        static void make_g1e_gout(Span<double> gout, Span<double> g, Span<FINT> idx,
+        internal static void make_g1e_gout(Span<double> gout, Span<double> g, Span<FINT> idx,
                                   CINTEnvVars envs, bool empty, FINT int1e_type)
         {
             FINT ia;
             switch (int1e_type)
             {
                 case 0:
-                    CINTg1e_ovlp(g, envs);
+                    G1e.CINTg1e_ovlp(g, envs);
                     envs.f_gout(gout, g, idx, envs, empty);
                     break;
                 case 1:
-                    CINTg1e_nuc(g, envs, -1);
+                    G1e.CINTg1e_nuc(g, envs, -1);
                     envs.f_gout(gout, g, idx, envs, empty);
                     break;
                 case 2:
                     for (ia = 0; ia < envs.natm; ia++)
                     {
-                        CINTg1e_nuc(g, envs, ia);
+                        G1e.CINTg1e_nuc(g, envs, ia);
                         envs.f_gout(gout, g, idx, envs, empty && ia == 0);
                     }
                     break;
@@ -484,10 +484,10 @@ namespace CintSharp.Intors.Int1e
             return CINT1e_spinor_drv(output, dims, envs, cache, c2s_sf_1e, 2);
         }
 
-        internal static void int1e_nuc_optimizer(CINTOpt* opt, FINT* atm, FINT natm,
+        internal static void int1e_nuc_optimizer(out CINTOpt? opt, FINT* atm, FINT natm,
                                   FINT* bas, FINT nbas, double* env)
         {
-            *opt = null;
+            opt = null;
         }
 
     }
