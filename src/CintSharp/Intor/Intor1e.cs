@@ -32,7 +32,7 @@ namespace CintSharp.Intor
             Tensor<double> result = Tensor.CreateUninitialized<double>([Components, Envs.NAO, Envs.NAO]);
             maxLength *= maxLength;
             maxLength *= Components;
-            double[] caches = ArrayPool<double>.Shared.Rent(1024);
+            double[] caches = ArrayPool<double>.Shared.Rent(1024 * Components * Components);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
             int[] dims = ArrayPool<int>.Shared.Rent(2);
             int[] shls = ArrayPool<int>.Shared.Rent(2);

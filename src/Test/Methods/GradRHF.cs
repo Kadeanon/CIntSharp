@@ -5,6 +5,7 @@ using MathNet.Numerics.Statistics;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
@@ -61,6 +62,7 @@ namespace CintSharp.Test.Methods
             var fock = Matrix2Tensor(RHF.FockMatrix);
             var coeff = Matrix2Tensor(RHF.C);
             var density = Matrix2Tensor(RHF.P);//GradientUtils.AO2MO(coeff, Core.P);
+            PrintRMS(density, nameof(density));
             var nocc = RHF.Atoms.Sum(atm => atm.AtomNumber) / 2;
             var so = new Range(0, nocc);
             var ac = RHF.Atoms.Select(atm => atm.position).ToArray();
@@ -74,7 +76,26 @@ namespace CintSharp.Test.Methods
             PrintRMS(int1e_ipovlp, nameof(int1e_ipovlp));
             PrintRMS(int1e_ipkin, nameof(int1e_ipkin));
             PrintRMS(int1e_ipnucl, nameof(int1e_ipnucl));
+            double d49 = int1e_ipnucl[0, 3, 2];
+            double d20 = int1e_ipnucl[0, 2, 3];
+            double d05 = int1e_ipnucl[1, 6, 4];
+            double d54 = int1e_ipnucl[1, 5, 4];
+
+            //int1e_ipnucl[0, 2, 3] = d49;
+            //int1e_ipnucl[0, 2, 4] = d49;//
+            //int1e_ipnucl[0, 3, 2] = d20;//
+            //int1e_ipnucl[0, 4, 2] = d20;//
+            //int1e_ipnucl[1, 3, 4] = d49;//
+            //int1e_ipnucl[1, 4, 3] = d20;//
+            //int1e_ipnucl[1, 5, 4] = d05;//
+            //int1e_ipnucl[1, 6, 4] = d54;//
+            //int1e_ipnucl[2, 3, 4] = d20;//
+            //int1e_ipnucl[2, 4, 3] = d49;//
+            //int1e_ipnucl[2, 5, 3] = d54;//
+            //int1e_ipnucl[2, 6, 3] = d05;//
             var int1e_core = Tensor.Add(int1e_ipkin.AsReadOnlyTensorSpan(), int1e_ipnucl);
+
+
             #endregion
 
             #region overlapDerivativ and hamiltonianDerivative
@@ -120,7 +141,7 @@ namespace CintSharp.Test.Methods
             for (var iatm = 0; iatm < Natm; iatm++)
             {
                 var sa = mol.EnumerateByAtom(iatm);
-                using (mol.RinvAt(iatm)) 
+                using (mol.RinvAt(iatm))
                 {
                     Tensor<double> int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
                     for (int idim = 0; idim < 3; idim++)
@@ -128,7 +149,7 @@ namespace CintSharp.Test.Methods
                         int totalDim = iatm * 3 + idim;
                         for (var k = 0; k < nao; k++)
                         {
-                            foreach(var j in sa)
+                            foreach (var j in sa)
                             {
                                 double value = int1e_ipovlp[idim, j, k];
                                 overlapDerivative[totalDim, j, k] -= value;
@@ -150,6 +171,7 @@ namespace CintSharp.Test.Methods
             //*/
             PrintRMS(overlapDerivative, nameof(overlapDerivative));
             PrintRMS(hamiltonianDerivative, nameof(hamiltonianDerivative));
+            //PrintAll3(hamiltonianDerivative);
             #endregion
 
             #region eriDerivative
@@ -212,12 +234,11 @@ namespace CintSharp.Test.Methods
             PrintRMS(overlapDerivativeMO, nameof(overlapDerivativeMO));
             //Console.WriteLine(overlapDerivativeMO.ToString());
             elecEnergyDerivative = Tensor.Create<double>([length]);
-            //var sub1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            //var sub2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            //var sub3 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            //var sub4 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
+            var sub1 = Tensor.Create<double>([length]);
+            var sub2 = Tensor.Create<double>([length]);
+            var sub3 = Tensor.Create<double>([length]);
+            var sub4 = Tensor.Create<double>([length]);
             //var so_enum = Enumerable.Range(0, nocc).ToArray();
-
             //sub1 += torch.einsum("tij,ij -> t", hamiltonianDerivative, density);
             for (int t = 0; t < length; t++)
             {
@@ -229,9 +250,10 @@ namespace CintSharp.Test.Methods
                         it += hamiltonianDerivative[t, i, j] * density[i, j];
                     }
                 }
-                elecEnergyDerivative[t] += it;
+                sub1[t] += it;
             }
-            PrintRMS(elecEnergyDerivative, nameof(elecEnergyDerivative));
+            PrintRMS(sub1, nameof(sub1));
+            elecEnergyDerivative = Tensor.Add<double>(elecEnergyDerivative, sub1);
             //sub2 = torch.einsum("duvkl,uv,kl -> d", eriDerivative, density, density);
 
             var uv = density;
@@ -263,17 +285,18 @@ namespace CintSharp.Test.Methods
                         id += kl[k, l] * dkl[k, l];
                     }
                 }
-                elecEnergyDerivative[d] += id / 2;
+                sub2[d] += id / 2;
             }
-            PrintRMS(elecEnergyDerivative, nameof(elecEnergyDerivative));
+            PrintRMS(sub2, nameof(sub2));
+            elecEnergyDerivative = Tensor.Add<double>(elecEnergyDerivative, sub2);
             //sub3 = -torch.einsum("dukvl,uv,kl -> d", eriDerivative, density, density);
             var dukvl = eriDerivative;
             dkl = Tensor.Create<double>([length, Nao, Nao]);
             for (int d = 0; d < length; d++)
             {
-                for (int k = 0; k < Nao; k++) 
+                for (int k = 0; k < Nao; k++)
                 {
-                    for(int l = 0; l < Nao; l++)
+                    for (int l = 0; l < Nao; l++)
                     {
                         double idkl = 0;
                         for (int u = 0; u < Nao; u++)
@@ -297,27 +320,30 @@ namespace CintSharp.Test.Methods
                         id += kl[k, l] * dkl[d, k, l];
                     }
                 }
-                elecEnergyDerivative[d] -= id / 4;
+                sub3[d] += id / 4;
             }
-            PrintRMS(elecEnergyDerivative, nameof(elecEnergyDerivative));
+            PrintRMS(sub3, nameof(sub3));
+            elecEnergyDerivative = Tensor.Subtract<double>(elecEnergyDerivative, sub3);
             //sub4 -= torch.einsum("dij, ij -> d", overlapDerivativeMO, fock_mo);
             //sub4 = np.einsum('atij, ij -> at', self.overlap_mo_derivative[:, :, so, so], fock_mo[so, so]) 
             var dij = overlapDerivativeMO;
             var ij = fock_mo;
             for (int d = 0; d < length; d++)
             {
-                var soo = mol.EnumerateByAtom(d / 3);
                 double id = 0;
-                foreach(int i in soo)
+                for (int i = 0; i < nocc; i++)
                 {
-                    foreach (int j in soo)
+                    for (int j = 0; j < nocc; j++)
                     {
                         id += dij[d, i, j] * ij[i, j];
                     }
                 }
-                elecEnergyDerivative[d] -= id * 2;
+                sub4[d] += id * 2;
             }
+            PrintRMS(sub4, nameof(sub4));
+            elecEnergyDerivative = Tensor.Subtract<double>(elecEnergyDerivative, sub4);
             PrintRMS(elecEnergyDerivative, nameof(elecEnergyDerivative));
+            TestExampleMethods.PrintForce(elecEnergyDerivative, Natm);
             //elecEnergyDerivative = Vector2Tensor(sub1 + sub2 / 2 - sub3 / 4 - sub4 * 2);
             #endregion
 
@@ -352,7 +378,7 @@ namespace CintSharp.Test.Methods
             PrintRMS(nuclearRepulsionDerivative, nameof(nuclearRepulsionDerivative));
             #endregion
 
-            for (int i = 0; i < Natm * 3; i++) 
+            for (int i = 0; i < Natm * 3; i++)
             {
                 force[i] = elecEnergyDerivative[i] + nuclearRepulsionDerivative[i];
             }
@@ -362,7 +388,7 @@ namespace CintSharp.Test.Methods
         private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, Tensor<double> getter)
         {
             var dims = getter.Lengths;
-            if (moCoeffs.Rank != 2) 
+            if (moCoeffs.Rank != 2)
             {
                 throw new ArgumentException("The input matrix must be 2D.");
             }
@@ -374,11 +400,11 @@ namespace CintSharp.Test.Methods
             for (var idim = 0; idim < dims.Length; idim++)
             {
                 var dim = dims[idim];
-                if (dims.Length == 3 && idim == 0) 
+                if (dims.Length == 3 && idim == 0)
                 {
                     continue;
                 }
-                if(dim != length) 
+                if (dim != length)
                 {
                     throw new ArgumentException("The input matrix must have the same size as the moCoeffs.");
                 }
@@ -386,7 +412,7 @@ namespace CintSharp.Test.Methods
             Tensor<double> temp1 = Tensor.Create<double>(dims);
             Tensor<double> temp2 = Tensor.Create<double>(dims);
 
-            switch (dims.Length) 
+            switch (dims.Length)
             {
                 case 2:
                     {
@@ -574,9 +600,52 @@ namespace CintSharp.Test.Methods
             return tensor;
         }
 
-        private void PrintRMS(Tensor<double> tensor, string name, double factor  = 1)
-            => Console.WriteLine($"Summary_{name}:{
-                StreamingStatistics.RootMeanSquare(tensor) * factor}," +
+        private void PrintRMS(Tensor<double> tensor, string name, double factor = 1)
+            => Console.WriteLine($"Summary_{name}:{StreamingStatistics.RootMeanSquare(tensor) * factor}," +
 $"{Tensor.Sum<double>(Tensor.Abs<double>(tensor)) * factor}");
+
+        private void PrintAll2(Tensor<double> tensor)
+        {
+            nint dim0 = tensor.Lengths[^2];
+            nint dim1 = tensor.Lengths[^1];
+            Span<nint> ranges = stackalloc nint[tensor.Rank];
+            foreach (ref var range in ranges)
+            {
+                range = 0;
+            }
+            for (nint i = 0; i < dim0; i++)
+            {
+                ranges[^2] = i;
+                for (nint j = 0; j < dim1; j++)
+                {
+                    ranges[^1] = j;
+                    Console.WriteLine($"({i}, {j}): {tensor[ranges]:F6} ");
+                }
+            }
+        }
+        private void PrintAll3(Tensor<double> tensor)
+        {
+            nint dim0 = tensor.Lengths[^3];
+            nint dim1 = tensor.Lengths[^2];
+            nint dim2 = tensor.Lengths[^1];
+            Span<nint> ranges = stackalloc nint[tensor.Rank];
+            foreach (ref var range in ranges)
+            {
+                range = 0;
+            }
+            for (nint i = 0; i < dim0; i++)
+            {
+                ranges[^3] = i;
+                for (nint j = 0; j < dim1; j++)
+                {
+                    ranges[^2] = j;
+                    for (nint k = 0; k < dim2; k++)
+                    {
+                        ranges[^1] = k;
+                        Console.WriteLine($"({i}, {j}, {k}): {tensor[ranges]:F6}");
+                    }
+                }
+            }
+        }
     }
 }

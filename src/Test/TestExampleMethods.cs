@@ -16,14 +16,13 @@ namespace CintSharp.Test
     [TestClass]
     public class TestExampleMethods
     {
-        public List<Atom>? H2O { get; set; }
 
-        public string? BasisName { get; set; }
+        public string? BasisName { get; set; } = "sto-3g";
 
         [TestMethod]
         public void TestHF()
         {
-            H2O = [
+            List<Atom> H2O = [
                 new Atom("O", 0.0, 0.0, 0.0),
                 new Atom("H", 0.0, 0.0, 1.0),
                 new Atom("H", 0.0, 1.0, 0.0)
@@ -38,21 +37,24 @@ namespace CintSharp.Test
         [TestMethod]
         public void TestGrad()
         {
-            H2O = [
-                new Atom("O", 0.0, 0.0, 0.0),
-                new Atom("H", 0.0, 0.0, 1.0),
-                new Atom("H", 0.0, 1.0, 0.0)
+            List<Atom> CH3OH = [
+new Atom("C", 0.664617, 0.033231, 0.000000),
+new Atom("H", 1.338596, -1.873145, 0.000000),
+new Atom("H", 1.338631, 0.986406, -1.650963),
+new Atom("H", -1.357391, 0.033256, 0.000000),
+new Atom("O", 1.565402, 1.307100, 2.206427),
+new Atom("H", 0.961143, 3.017646, 2.207215),
                 ];
             BasisName = "sto-3g";
-            RHF rhf = new(H2O, BasisName);
+            RHF rhf = new(CH3OH, BasisName);
             var totalEnergy = rhf.Run();
-            Assert.AreEqual(-73.45549594, totalEnergy, 1e-8);
+            Assert.AreEqual(-113.54406552303, totalEnergy, 1e-8);
             var grad = new GradRHF(rhf);
             var gradTensor = grad.Run();
             PrintForce(gradTensor, grad.Natm);
         }
 
-        public void PrintForce(Tensor<double> force, int natm)
+        public static void PrintForce(Tensor<double> force, int natm)
         {
             StringBuilder sb = new();
             for (int i = 0; i < natm; i++)
