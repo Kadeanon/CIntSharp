@@ -21,14 +21,14 @@ namespace CintSharp.Intor
             }
         }
 
-        public override Tensor<double> InvokeKernal()
+        public override Tensor<double> Invoke()
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             var shellLength = Envs.ShellLengths;
             int maxLength = shellLength.Max();
             var nshl = shellLength.Length;
             var ranges = Envs.RangesByShells;
-            Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO, Components]);
+            Tensor<double> result = Tensor.CreateUninitialized<double>([Components, Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO]);
             maxLength = maxLength * maxLength * maxLength * maxLength;
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024 * 512);
@@ -57,7 +57,7 @@ namespace CintSharp.Intor
                             shls[3] = l;
                             var resultChunk = result.AsTensorSpan();
                             intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
-                            resultChunk = resultChunk.Slice(ranges[i], ranges[j], ranges[k], ranges[l], ..);
+                            resultChunk = resultChunk[.., ranges[i], ranges[j], ranges[k], ranges[l]];
                             for (int i2 = 0; i2 < lengthI; i2++)
                             {
                                 for (int j2 = 0; j2 < lengthJ; j2++)
@@ -68,7 +68,12 @@ namespace CintSharp.Intor
                                         {
                                             for (int c = 0; c < Components; c++)
                                             {
-                                                resultChunk[i2, j2, k2, l2, c] = buffer[i2 + j2 * lengthI + k2 * lengthI * lengthJ + l2 * lengthI * lengthJ * lengthK + c * lengthI * lengthJ * lengthK * lengthL];
+                                                resultChunk[c, i2, j2, k2, l2] = buffer[
+                                                    c + 
+                                                    Components * i2 + 
+                                                    Components * lengthI * j2 + 
+                                                    Components * lengthI * lengthJ * k2 + 
+                                                    Components * lengthI * lengthJ * lengthK * l2];
                                             }
                                         }
                                     }

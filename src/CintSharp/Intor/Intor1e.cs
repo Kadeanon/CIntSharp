@@ -29,7 +29,7 @@ namespace CintSharp.Intor
             int maxLength = shellLength.Max();
             var nshl = shellLength.Length;
             var ranges = Envs.RangesByShells;
-            Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO, Components]);
+            Tensor<double> result = Tensor.CreateUninitialized<double>([Components, Envs.NAO, Envs.NAO]);
             maxLength *= maxLength;
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024);
@@ -46,7 +46,7 @@ namespace CintSharp.Intor
                     int lengthJ = shellLength[j];
                     dims[1] = lengthJ;
                     shls[1] = j;
-                    var resultChunk = result.AsTensorSpan(ranges[i], ranges[j], ..);
+                    var resultChunk = result.AsTensorSpan(.., ranges[i], ranges[j]);
                     intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
                     for (int i2 = 0; i2 < lengthI; i2++)
                     {
@@ -54,7 +54,10 @@ namespace CintSharp.Intor
                         {
                             for(int c = 0; c < Components; c++)
                             {
-                                resultChunk[i2, j2, c] = buffer[i2 + j2 * lengthI];
+                                resultChunk[c, i2, j2] = buffer[
+                                    c + 
+                                    Components * i2 + 
+                                    Components * lengthI * j2];
                             }
                         }
                     }
