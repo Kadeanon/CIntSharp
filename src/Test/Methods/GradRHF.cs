@@ -1,6 +1,7 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Intor;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Statistics;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -70,55 +71,94 @@ namespace CintSharp.Test.Methods
             var int1e_ipkin = mol.InvokeIntor("int1e_ipkin");
             var int1e_ipnucl = mol.InvokeIntor("int1e_ipnuc");
             var z_a = RHF.Atoms.Select(atm => atm.AtomNumber).ToArray();
+            PrintRMS(int1e_ipovlp, nameof(int1e_ipovlp));
+            PrintRMS(int1e_ipkin, nameof(int1e_ipkin));
+            PrintRMS(int1e_ipnucl, nameof(int1e_ipnucl));
+            var int1e_core = Tensor.Add(int1e_ipkin.AsReadOnlyTensorSpan(), int1e_ipnucl);
             #endregion
-            //return;
+
             #region overlapDerivativ and hamiltonianDerivative
             //derivatives in AO basis
             overlapDerivative = Tensor.Create<double>([length, nao, nao]);
             hamiltonianDerivative = Tensor.Create<double>([length, nao, nao]);
+            /*
+            foreach (var iatm in Enumerable.Range(0, Natm))
+            {
+                int p0 = mol.OffsetsByAtoms[iatm];
+                int p1 = mol.OffsetsByAtoms[iatm + 1];
+                NRange sa = p0..p1;
+                NRange atmDim = new NRange(iatm * 3, iatm * 3 + 3);
+                overlapDerivative[atmDim, sa, ..] = Tensor.Negate<double>(int1e_ipovlp[.., sa, ..]);
+                hamiltonianDerivative[atmDim, sa, ..] = Tensor.Negate<double>(Tensor.Add<double>(int1e_ipkin, int1e_ipnucl))[.., sa, ..];
+
+                using (mol.RinvAt(iatm))
+                {
+                    var int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
+                    hamiltonianDerivative[atmDim, .., ..] =
+                        Tensor.Subtract<double>(
+                            hamiltonianDerivative[atmDim, .., ..],
+                            Tensor.Multiply<double>(int1e_iprinv, z_a[iatm]));
+                }
+            }
+            Console.WriteLine(overlapDerivative.ToString());
+            Console.WriteLine(hamiltonianDerivative.ToString());
+            PrintRMS(overlapDerivative, nameof(overlapDerivative));
+            PrintRMS(hamiltonianDerivative, nameof(hamiltonianDerivative));
+            for (int i = 0; i < length; i++)
+            {
+                for (int j = 0; j < nao; j++)
+                {
+                    for (int k = 0; k < nao; k++)
+                    {
+                        overlapDerivative[i, j, k] += overlapDerivative[i, k, j];
+                        hamiltonianDerivative[i, j, k] += hamiltonianDerivative[i, k, j];
+                    }
+                }
+            }
+            */
+            ///*
             for (var iatm = 0; iatm < Natm; iatm++)
             {
-                var p0 = mol.OffsetsByAtoms[iatm];
-                var p1 = mol.OffsetsByAtoms[iatm + 1];
-                var sa = Enumerable.Range(p0, p1 - p0).ToList();
-                Tensor<double> int1e_iprinv;
+                var sa = mol.EnumerateByAtom(iatm);
                 using (mol.RinvAt(iatm)) 
                 {
-                    int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
-                }
-                for (int idim = 0; idim < 3; idim++)
-                {
-                    int totalDim = iatm * 3 + idim;
-                    for (var k = 0; k < nao; k++)
+                    Tensor<double> int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
+                    for (int idim = 0; idim < 3; idim++)
                     {
-                        foreach (var j in sa)
+                        int totalDim = iatm * 3 + idim;
+                        for (var k = 0; k < nao; k++)
                         {
-                            double value = int1e_ipovlp[j, k, idim];
-                            overlapDerivative[totalDim, j, k] -= value;
-                            overlapDerivative[totalDim, k, j] -= value;
-                            value = int1e_ipkin[j, k, idim] + int1e_ipnucl[j, k, idim];
-                            hamiltonianDerivative[totalDim, j, k] -= value;
-                            hamiltonianDerivative[totalDim, k, j] -= value;
-                        }
-                        for (int j = 0; j < nao; j++)
-                        {
-                            double value = z_a[iatm] * int1e_iprinv[j, k, idim];
-                            hamiltonianDerivative[totalDim, j, k] -= value;
-                            hamiltonianDerivative[totalDim, k, j] -= value;
+                            foreach(var j in sa)
+                            {
+                                double value = int1e_ipovlp[idim, j, k];
+                                overlapDerivative[totalDim, j, k] -= value;
+                                overlapDerivative[totalDim, k, j] -= value;
+                                value = int1e_core[idim, j, k];
+                                hamiltonianDerivative[totalDim, j, k] -= value;
+                                hamiltonianDerivative[totalDim, k, j] -= value;
+                            }
+                            for (int j = 0; j < nao; j++)
+                            {
+                                double value = z_a[iatm] * int1e_iprinv[idim, j, k];
+                                hamiltonianDerivative[totalDim, j, k] -= value;
+                                hamiltonianDerivative[totalDim, k, j] -= value;
+                            }
                         }
                     }
                 }
             }
+            //*/
+            PrintRMS(overlapDerivative, nameof(overlapDerivative));
+            PrintRMS(hamiltonianDerivative, nameof(hamiltonianDerivative));
             #endregion
-            //return;
+
             #region eriDerivative
             var int2e_ip1 = mol.InvokeIntor("int2e_ip1");
-            //var sum_int2e_ip1 = int2e_ip1.square().sum().ToDouble();
-            var eri1_ao = Tensor.Create<double>([3 * Natm, Nao, Nao, Nao, Nao]);
+            PrintRMS(int2e_ip1, nameof(int2e_ip1));
+            eriDerivative = Tensor.Create<double>([length, Nao, Nao, Nao, Nao]);
             for (var iatm = 0; iatm < Natm; iatm++)
             {
-                int p0 = mol.OffsetsByAtoms[iatm];
-                int p1 = mol.OffsetsByAtoms[iatm + 1];
+                var sa = mol.EnumerateByAtom(iatm);
                 for (int idim = 0; idim < 3; idim++)
                 {
                     int totalDim = iatm * 3 + idim;
@@ -128,23 +168,90 @@ namespace CintSharp.Test.Methods
                         {
                             for (var k = 0; k < nao; k++)
                             {
-                                for (var s = p0; s < p1; s++)
+                                foreach (var s in sa)
                                 {
-                                    eri1_ao[totalDim, s, i, j, k] -= int2e_ip1[s, i, j, k, idim];
-                                    eri1_ao[totalDim, i, s, j, k] -= int2e_ip1[s, i, j, k, idim];
-                                    eri1_ao[totalDim, i, j, s, k] -= int2e_ip1[s, k, i, j, idim];
-                                    eri1_ao[totalDim, i, j, k, s] -= int2e_ip1[s, k, i, j, idim];
+                                    eriDerivative[totalDim, s, i, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                    //eriDerivative[totalDim, i, s, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                    //eriDerivative[totalDim, i, j, s, k] -= int2e_ip1[idim, s, k, i, j];
+                                    //eriDerivative[totalDim, i, j, k, s] -= int2e_ip1[idim, s, k, i, j];
                                 }
                             }
                         }
                     }
                 }
             }
-            //sum_eri = eri1_ao.square().sum().ToDouble();//83.409308874986692
-            //var sum_eri_1 = eri1_ao.abs().sum().ToDouble();//1594.7648127209497
-            eriDerivative = eri1_ao;
+            PrintRMS(eriDerivative, nameof(eriDerivative));
+
+            foreach (var iatm in Enumerable.Range(0, Natm))
+            {
+                var sa = mol.EnumerateByAtom(iatm);
+                for (int idim = 0; idim < 3; idim++)
+                {
+                    int totalDim = iatm * 3 + idim;
+                    for (var i = 0; i < nao; i++)
+                    {
+                        for (var j = 0; j < nao; j++)
+                        {
+                            for (var k = 0; k < nao; k++)
+                            {
+                                foreach (var s in sa)
+                                {
+                                    eriDerivative[totalDim, i, s, j, k] -=  int2e_ip1[idim, s, i, j, k];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            PrintRMS(eriDerivative, nameof(eriDerivative));
+
+            for (var iatm = 0; iatm < Natm; iatm++)
+            {
+                var sa = mol.EnumerateByAtom(iatm);
+                for (int idim = 0; idim < 3; idim++)
+                {
+                    int totalDim = iatm * 3 + idim;
+                    for (var i = 0; i < nao; i++)
+                    {
+                        for (var j = 0; j < nao; j++)
+                        {
+                            for (var k = 0; k < nao; k++)
+                            {
+                                foreach (var s in sa)
+                                {
+                                    eriDerivative[totalDim, i, j, s, k] -= int2e_ip1[idim, s, k, i, j];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            PrintRMS(eriDerivative, nameof(eriDerivative));
+
+            for (var iatm = 0; iatm < Natm; iatm++)
+            {
+                var sa = mol.EnumerateByAtom(iatm);
+                for (int idim = 0; idim < 3; idim++)
+                {
+                    int totalDim = iatm * 3 + idim;
+                    for (var i = 0; i < nao; i++)
+                    {
+                        for (var j = 0; j < nao; j++)
+                        {
+                            for (var k = 0; k < nao; k++)
+                            {
+                                foreach (var s in sa)
+                                {
+                                    eriDerivative[totalDim, i, j, k, s] -= int2e_ip1[idim, s, k, i, j];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            PrintRMS(eriDerivative, nameof(eriDerivative));
             #endregion
-            
+
             #region electronicEnergyDerivative
             overlapDerivativeMO = Tensor.Create<double>([length, Nao, Nao]);
             var fock_mo = AO2MO(coeff, fock);
@@ -155,18 +262,16 @@ namespace CintSharp.Test.Methods
                 var span = overlapDerivative.Slice(ranges);
                 span.SetSlice(AO2MO(coeff, span));
             }
-
+            PrintRMS(overlapDerivativeMO, nameof(overlapDerivativeMO));
             elecEnergyDerivative = Tensor.Create<double>([length]);
             //var sub1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
             //var sub2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
             //var sub3 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
             //var sub4 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(length);
-            var so_enum = Enumerable.Range(0, nocc).ToArray();
+            //var so_enum = Enumerable.Range(0, nocc).ToArray();
             for (var iatm = 0; iatm < Natm; iatm++)
             {
-                int p0 = mol.OffsetsByAtoms[iatm];
-                int p1 = mol.OffsetsByAtoms[iatm + 1];
-                var slice = Enumerable.Range(p0, p1 - p1).ToArray();
+                var slice = mol.RangesByAtoms[iatm];
                 //sub1 += torch.einsum("tij,ij -> t", hamiltonianDerivative, density);
                 for (int t = 0; t < length; t++) 
                 {
@@ -476,5 +581,10 @@ namespace CintSharp.Test.Methods
             }
             return tensor;
         }
+
+        private void PrintRMS(Tensor<double> tensor, string name)
+            => Console.WriteLine($"Summary_{name}:{
+                StreamingStatistics.RootMeanSquare(tensor)}," +
+$"{Tensor.Sum<double>(Tensor.Abs<double>(tensor))}");
     }
 }

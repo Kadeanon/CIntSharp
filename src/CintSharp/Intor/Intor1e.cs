@@ -22,21 +22,13 @@ namespace CintSharp.Intor
             }
         }
 
-        protected override Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength)
+        public override Tensor<double> Invoke()
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
-            int nshl = shellLength.Length;
-            int[] shellOffset = Envs.OffsetsByShells;
-            int maxLength = 0;
-            Span<NRange> ranges = stackalloc NRange[nshl];
-            for (int i = 0; i < nshl; i++)
-            {
-                ranges[i] = new NRange(shellOffset[i], shellOffset[i] + shellLength[i]);
-                if (shellLength[i] > maxLength)
-                {
-                    maxLength = shellLength[i];
-                }
-            }
+            var shellLength = Envs.ShellLengths;
+            int maxLength = shellLength.Max();
+            var nshl = shellLength.Length;
+            var ranges = Envs.RangesByShells;
             Tensor<double> result = Tensor.CreateUninitialized<double>([Envs.NAO, Envs.NAO, Components]);
             maxLength *= maxLength;
             maxLength *= Components;

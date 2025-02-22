@@ -146,43 +146,38 @@ namespace CintSharp.Test.Methods
         public void GeneralGMatrix()
         {
             int basisLength = P.RowCount;
-            G = Matrix<double>.Build.Dense(basisLength, basisLength);
-            for (int u = 0; u < basisLength; u++)
+            G ??= Matrix<double>.Build.Dense(basisLength, basisLength);
+            G.MapIndexedInplace((u, v, _) =>
             {
-                for (int v = 0; v < basisLength; v++)
+                double value = 0;
+                for (int sigma = 0; sigma < basisLength; sigma++)
                 {
-                    double value = 0;
-                    for (int sigma = 0; sigma < basisLength; sigma++)
+                    for (int lambda = 0; lambda < basisLength; lambda++)
                     {
-                        for (int lambda = 0; lambda < basisLength; lambda++)
-                        {
-                            double item = P[sigma, lambda] * (2 * ERI[u, v, sigma, lambda] - ERI[u, sigma, v, lambda]) / 2;
-                            value += item;
-                        }
+                        double item = P[sigma, lambda] * (2 * ERI[u, v, sigma, lambda] - ERI[u, sigma, v, lambda]) / 2;
+                        value += item;
                     }
-                    G[u, v] = value;
                 }
-            }
+                return value;
+            },
+            Zeros.Include);
         }
 
         [MemberNotNull(nameof(P))]
         private void GeneralPMatrix()
         {
             int occ = Atoms.Sum(atom => atom.AtomNumber) / 2;
-            P = Matrix<double>.Build.Dense(C.RowCount, C.ColumnCount);
-
-            for (int i = 0; i < C.ColumnCount; i++)
+            P ??= Matrix<double>.Build.Dense(C.RowCount, C.ColumnCount);
+            P.MapIndexedInplace((i, j, _) =>
             {
-                for (int j = 0; j < C.ColumnCount; j++)
+                var ij = 0.0;
+                for (int index = 0; index < occ; index++)
                 {
-                    var ij = 0.0;
-                    for (int index = 0; index < occ; index++)
-                    {
-                        ij += 2 * C[i, index] * C[j, index];
-                    }
-                    P[i,j] = ij;
+                    ij += 2 * C[i, index] * C[j, index];
                 }
-            }
+                return ij;
+            },
+            Zeros.Include);
         }
 
         public void Conver()

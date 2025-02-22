@@ -80,33 +80,37 @@ namespace CintSharp.DataStructures
 
         public CIntEnvs Build()
         {
-            List<int> offsetsByAtom = [];
-            List<int> offsetsByShell = [];
+            List<Range> shellRanges = [];
+            List<Range> atomRanges = [];
+            List<int> shellLength = [];
             int current = 0;
             int ibas = 0;
-            int atomIdx = 0;
+            int iatom = 0;
+            int lastOffsetByShell = 0;
+            int lastOffsetByAtom = 0;
             foreach (var atom in Atoms)
             {
                 Shells shells = BasisDict[atom];
-                offsetsByAtom.Add(current);
                 foreach (var shell in shells)
                 {
                     Bas shellBas = new();
-                    offsetsByShell.Add(current);
-                    shell.CopyToBasis(ref shellBas, atomIdx, Envs);
+                    shell.CopyToBasis(ref shellBas, iatom, Envs);
                     Bases.Add(shellBas);
-                    current += shellBas.CgtoSpheric();
+                    var cgto = shellBas.CgtoSpheric();
+                    shellLength.Add(cgto);
+                    current += cgto;
+                    shellRanges.Add(new Range(lastOffsetByShell, current));
+                    lastOffsetByShell = current;
                     ibas++;
                 }
-                atom.CopyToAtm(ref Atms[atomIdx], Envs);
-                atomIdx++;
+                atom.CopyToAtm(ref Atms[iatom], Envs);
+                atomRanges.Add(new Range(lastOffsetByAtom, current));
+                lastOffsetByAtom = current;
+                iatom++;
             }
 
-            offsetsByAtom.Add(current);
-            offsetsByShell.Add(current);
-
-            return new CIntEnvs(Atms, Bases.ToArray(), Envs.ToArray(), 
-                [..offsetsByAtom], [..offsetsByShell]);
+            return new CIntEnvs(Atms, [.. Bases], [.. Envs], 
+                [..shellLength], [..atomRanges],[..shellRanges]);
         }
     }
 }

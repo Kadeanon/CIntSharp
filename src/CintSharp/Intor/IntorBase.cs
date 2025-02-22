@@ -41,27 +41,7 @@ namespace CintSharp.Intor
             }
         }
 
-        public Tensor<double> Invoke()
-        {
-            int nao = Envs.NAO;
-            int nshl = Envs.OffsetsByShells.Length - 1;
-            int[] shellLength = ArrayPool<int>.Shared.Rent(nshl);
-            int[] shellOffset = Envs.OffsetsByShells;
-            int lastOffset = Envs.OffsetsByShells[0];
-            int currentOffset;
-            for (int i = 0; i < nshl; i++)
-            {
-                currentOffset = Envs.OffsetsByShells[i + 1];
-                int length = currentOffset - lastOffset;
-                lastOffset = currentOffset;
-                shellLength[i] = length;
-            }
-            Tensor<double> result = InvokeKernal(shellLength.AsSpan(0, nshl));
-            ArrayPool<int>.Shared.Return(shellLength);
-            return result;
-        }
-
-        protected abstract Tensor<double> InvokeKernal(ReadOnlySpan<int> shellLength);
+        public abstract Tensor<double> Invoke();
 
         public void Dispose()
         {

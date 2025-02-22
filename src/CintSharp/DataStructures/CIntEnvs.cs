@@ -3,6 +3,7 @@ using CintSharp.DataStructures.Native;
 using CintSharp.Intor;
 using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Linq;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
@@ -11,18 +12,20 @@ using System.Threading.Tasks;
 
 namespace CintSharp.DataStructures
 {
-    public class CIntEnvs(Atm[] atms, Bas[] bases, double[] envs, int[] offsetsByAtoms, int[] offsetsByShells)
+    public class CIntEnvs
     {
 
-        public Atm[] Atms { get; } = atms;
+        public Atm[] Atms { get; }
 
-        public Bas[] Bases { get; } = bases;
+        public Bas[] Bases { get; }
 
-        public double[] Envs { get; } = envs;
+        public double[] Envs { get; }
 
-        public int[] OffsetsByAtoms { get; } = offsetsByAtoms;
+        public Range[] RangesByShells { get; }
 
-        public int[] OffsetsByShells { get; } = offsetsByShells;
+        public Range[] RangesByAtoms { get; }
+
+        public int[] ShellLengths { get; }
 
         public ref EnvHeader EnvHeader => ref EnvHeader.FromSpan(Envs);
 
@@ -30,7 +33,18 @@ namespace CintSharp.DataStructures
 
         public int Nbas => Bases.Length;
 
-        public int NAO => OffsetsByAtoms[^1];
+        public int NAO { get; }
+
+        internal CIntEnvs(Atm[] atms, Bas[] bases, double[] envs, int[] lengthByShells, Range[] rangesByAtoms, Range[] rangesByShells)
+        {
+            Atms = atms;
+            Bases = bases;
+            Envs = envs;
+            RangesByShells = rangesByShells;
+            RangesByAtoms = rangesByAtoms;
+            ShellLengths = lengthByShells;
+            NAO = lengthByShells.Sum();
+        }
 
         public static CIntEnvs Create(List<Atom> atoms, Func<Atom, string> basisNameSetter, IBasisParser parser = null) 
             => new EnvBuilder(atoms, parser).SetBasis(basisNameSetter).Build();
@@ -64,6 +78,20 @@ namespace CintSharp.DataStructures
         public HeaderRinvScope RinvAt(Vector3 rinvOrigin)
         {
             return new HeaderRinvScope(this, rinvOrigin);
+        }
+
+        public IEnumerable<int> EnumerateByAtom(int iatm) 
+        {
+            var range = RangesByAtoms[iatm];
+            (int start, int length) = range.GetOffsetAndLength(NAO);
+            return Enumerable.Range(start, length);
+        }
+
+        public IEnumerable<int> EnumerateByShell(int ish)
+        {
+            var range = RangesByShells[ish];
+            (int start, int length) = range.GetOffsetAndLength(NAO);
+            return Enumerable.Range(start, length);
         }
     }
 
