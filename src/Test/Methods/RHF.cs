@@ -196,7 +196,6 @@ namespace CintSharp.Test.Methods
                 isConver = ConjConver(delEnergy, delFock);
                 Console.WriteLine();
             } while (cycle <= MaxCycle && !isConver);
-            Console.WriteLine();
             if (!isConver)
             {
                 Console.WriteLine($"Not Converged after Cycle {MaxCycle}!");

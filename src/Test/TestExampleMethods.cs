@@ -37,21 +37,27 @@ namespace CintSharp.Test
         [TestMethod]
         public void TestGrad()
         {
-            List<Atom> CH3OH = [
-new Atom("C", 0.664617, 0.033231, 0.000000),
-new Atom("H", 1.338596, -1.873145, 0.000000),
-new Atom("H", 1.338631, 0.986406, -1.650963),
-new Atom("H", -1.357391, 0.033256, 0.000000),
-new Atom("O", 1.565402, 1.307100, 2.206427),
-new Atom("H", 0.961143, 3.017646, 2.207215),
+            List<Atom> H2O = [
+                new Atom("O", 0.0, 0.0, 0.0),
+                new Atom("H", 0.0, 0.0, 1.0),
+                new Atom("H", 0.0, 1.0, 0.0)
                 ];
             BasisName = "sto-3g";
-            RHF rhf = new(CH3OH, BasisName);
+            RHF rhf = new(H2O, BasisName);
             var totalEnergy = rhf.Run();
-            Assert.AreEqual(-113.54406552303, totalEnergy, 1e-8);
+            Assert.AreEqual(-73.45549594, totalEnergy, 1e-8);
+            Console.WriteLine();
+            Console.WriteLine("Calculating Gradient...");
             var grad = new GradRHF(rhf);
             var gradTensor = grad.Run();
+            Console.WriteLine("Total Gradient:");
             PrintForce(gradTensor, grad.Natm);
+            SequenceCloseTo(
+                [0.0000000000,  2.8214032546,  2.8214032546,
+                -0.0000000000,  0.2173439382, -3.0387471928,
+                 0.0000000000, -3.0387471928,  0.2173439382],
+                gradTensor,
+                 1e-7);
         }
 
         public static void PrintForce(Tensor<double> force, int natm)
@@ -66,6 +72,19 @@ new Atom("H", 0.961143, 3.017646, 2.207215),
                 sb.AppendLine();
             }
             Console.WriteLine(sb.ToString());
+        }
+
+        public static void SequenceCloseTo(
+            IEnumerable<double> expected, 
+            IEnumerable<double> actual,
+            double tolerance)
+        {
+            var aEnum = expected.GetEnumerator();
+            var bEnum = actual.GetEnumerator();
+            while (aEnum.MoveNext() && bEnum.MoveNext())
+            {
+                Assert.AreEqual(aEnum.Current, bEnum.Current, tolerance);
+            }
         }
     }
 }

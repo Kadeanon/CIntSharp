@@ -48,16 +48,16 @@ namespace CintSharp.Intor
                     shls[1] = j;
                     var resultChunk = result.AsTensorSpan(.., ranges[i], ranges[j]);
                     intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
-                    for (int i2 = 0; i2 < lengthI; i2++)
+                    for (int component = 0; component < Components; component++)
                     {
-                        for (int j2 = 0; j2 < lengthJ; j2++)
+                        for (int i2 = 0; i2 < lengthI; i2++)
                         {
-                            for(int c = 0; c < Components; c++)
+                            for (int j2 = 0; j2 < lengthJ; j2++)
                             {
-                                resultChunk[c, i2, j2] = buffer[
-                                    c + 
-                                    Components * i2 + 
-                                    Components * lengthI * j2];
+                                resultChunk[component, i2, j2] = buffer[
+                                    i2 +
+                                    lengthI * j2 +
+                                    lengthI * lengthJ *component];
                             }
                         }
                     }

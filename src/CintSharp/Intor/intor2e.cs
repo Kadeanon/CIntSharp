@@ -69,11 +69,12 @@ namespace CintSharp.Intor
                                             for (int c = 0; c < Components; c++)
                                             {
                                                 resultChunk[c, i2, j2, k2, l2] = buffer[
-                                                    c + 
-                                                    Components * i2 + 
-                                                    Components * lengthI * j2 + 
-                                                    Components * lengthI * lengthJ * k2 + 
-                                                    Components * lengthI * lengthJ * lengthK * l2];
+                                                    i2 +
+                                                    lengthI * j2 +
+                                                    lengthI * lengthJ * k2 +
+                                                    lengthI * lengthJ * lengthK * l2 +
+                                                    lengthI * lengthJ * lengthK * lengthL * c];
+
                                             }
                                         }
                                     }
