@@ -1,5 +1,6 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Native.Libcint;
+using Sci.NET.Mathematics.Tensors;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -22,14 +23,14 @@ namespace CintSharp.Intor
             }
         }
 
-        public override Tensor<double> Invoke()
+        public override Tensor Invoke()
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             var shellLength = Envs.ShellLengths;
             int maxLength = shellLength.Max();
             var nshl = shellLength.Length;
             var ranges = Envs.RangesByShells;
-            Tensor<double> result = Tensor.CreateUninitialized<double>([Components, Envs.NAO, Envs.NAO]);
+            Tensor result = new(null, false, Components, Envs.NAO, Envs.NAO);
             maxLength *= maxLength;
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024 * Components * Components);
@@ -46,7 +47,7 @@ namespace CintSharp.Intor
                     int lengthJ = shellLength[j];
                     dims[1] = lengthJ;
                     shls[1] = j;
-                    var resultChunk = result.AsTensorSpan(.., ranges[i], ranges[j]);
+                    var resultChunk = Sci.NET.Mathematics.Tensors.Tensor.Slice(result, .., ranges[i], ranges[j]);
                     intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
                     for (int component = 0; component < Components; component++)
                     {
@@ -69,7 +70,7 @@ namespace CintSharp.Intor
             ArrayPool<double>.Shared.Return(buffer);
             if(Components == 1) 
             {
-                result = result.Reshape([Envs.NAO, Envs.NAO]);
+                result = (Tensor)result.Reshape(Envs.NAO, Envs.NAO)!;
             }
             return result;
         }

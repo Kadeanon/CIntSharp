@@ -1,8 +1,8 @@
-﻿using CintSharp.DataStructures;
+﻿global using Tensor = Sci.NET.Mathematics.Tensors.Tensor<double>;
+using CintSharp.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics.Tensors;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;

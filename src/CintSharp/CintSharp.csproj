@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Numerics.Tensors" Version="9.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Native\Libcint\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -25,6 +21,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <EmbeddedResource Include="Basis\*.json" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="Sci.NET.Mathematics">
+	    <HintPath>..\..\..\MathNet\Sci.Net\Sci.NET\Artifacts\bin\Debug\net8.0\Sci.NET.Mathematics.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 	
 </Project>
