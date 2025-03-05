@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -3588,59 +3590,59 @@ namespace CintSharp
         new(g_trans_cart2sph.AsMemory()[14960..], null, null, null, null),
 };
 
-// transform integrals from cartesian to spheric
-static Span<double> a_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = l * 2 + 1;
-    CINTdgemm_TN(nd, nket, nf, g_c2s[l].cart2sph, gcart, gsph);
-    return gsph;
-}
+        // transform integrals from cartesian to spheric
+        static Span<double> a_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = l * 2 + 1;
+            CINTdgemm_TN(nd, nket, nf, g_c2s[l].cart2sph, gcart, gsph);
+            return gsph;
+        }
 
-static double* a_ket_cart2spheric(double* gsph, double* gcart,
-                                  FINT lds, FINT nbra, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = l * 2 + 1;
-    CINTdgemm_NN1(nbra, nd, nf, gcart, g_c2s[l].cart2sph, gsph, lds);
-    return gsph;
-}
+        static Span<double> a_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
+                                          FINT lds, FINT nbra, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = l * 2 + 1;
+            CINTdgemm_NN1(nbra, nd, nf, gcart, g_c2s[l].cart2sph, gsph, lds);
+            return gsph;
+        }
 
-// transform s function from cartesian to spheric
-static Span<double> s_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
-{
-    /*
-    FINT i;
-    for (i = 0; i < nket; i++) {
-            *gsph = gcart[i];
-    }*/
-    return gcart;
-}
-static double* s_ket_cart2spheric(double* gsph, double* gcart,
-                                  FINT lds, FINT nbra, FINT l)
-{
-    /*
-    FINT i;
-    for (i = 0; i < nbra; i++) {
-            gsph[i] = gcart[i];
-    }*/
-    return gcart;
-}
-static double* s_ket_cart2spheric_copy(double* gsph, double* gcart,
-                                       FINT lds, FINT nbra, FINT l)
-{
-    FINT i;
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[i] = gcart[i];
-    }
-    return gsph;
-}
+        // transform s function from cartesian to spheric
+        static Span<double> s_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            /*
+            FINT i;
+            for (i = 0; i < nket; i++) {
+                    *gsph = gcart[i];
+            }*/
+            return gcart;
+        }
+        static Span<double> s_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
+                                          FINT lds, FINT nbra, FINT l)
+        {
+            /*
+            FINT i;
+            for (i = 0; i < nbra; i++) {
+                    gsph[i] = gcart[i];
+            }*/
+            return gcart;
+        }
+        static Span<double> s_ket_cart2spheric_copy(Span<double> gsph, Span<double> gcart,
+                                               FINT lds, FINT nbra, FINT l)
+        {
+            FINT i;
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[i] = gcart[i];
+            }
+            return gsph;
+        }
 
-// transform p function from cartesian to spheric
-static Span<double> p_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
-{
-# if PYPZPX
+        // transform p function from cartesian to spheric
+        static Span<double> p_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+#if PYPZPX
     FINT i;
     for (i = 0; i < nket; i++)
     {
@@ -3650,13 +3652,13 @@ static Span<double> p_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double
     }
     return gsph;
 #else
-    return gcart;
+            return gcart;
 #endif
-}
-static double* p_ket_cart2spheric(double* gsph, double* gcart,
-                                  FINT lds, FINT nbra, FINT l)
-{
-# if PYPZPX
+        }
+        static Span<double> p_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
+                                          FINT lds, FINT nbra, FINT l)
+        {
+#if PYPZPX
     FINT i;
     for (i = 0; i < nbra; i++)
     {
@@ -3666,14 +3668,14 @@ static double* p_ket_cart2spheric(double* gsph, double* gcart,
     }
     return gsph;
 #else
-    return gcart;
+            return gcart;
 #endif
-}
-static double* p_ket_cart2spheric_copy(double* gsph, double* gcart,
-                                       FINT lds, FINT nbra, FINT l)
-{
-    FINT i;
-# if PYPZPX
+        }
+        static Span<double> p_ket_cart2spheric_copy(Span<double> gsph, Span<double> gcart,
+                                               FINT lds, FINT nbra, FINT l)
+        {
+            FINT i;
+#if PYPZPX
     for (i = 0; i < nbra; i++)
     {
         gsph[0 * nbra + i] = gcart[1 * nbra + i];  // py
@@ -3681,18 +3683,18 @@ static double* p_ket_cart2spheric_copy(double* gsph, double* gcart,
         gsph[2 * nbra + i] = gcart[0 * nbra + i];  // px
     }
 #else
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[0 * lds + i] = gcart[0 * nbra + i];
-        gsph[1 * lds + i] = gcart[1 * nbra + i];
-        gsph[2 * lds + i] = gcart[2 * nbra + i];
-    }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[0 * lds + i] = gcart[0 * nbra + i];
+                gsph[1 * lds + i] = gcart[1 * nbra + i];
+                gsph[2 * lds + i] = gcart[2 * nbra + i];
+            }
 #endif
-    return gsph;
-}
+            return gsph;
+        }
 
-// transform d function from cartesian to spheric
-static Span<double> d_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        // transform d function from cartesian to spheric
+        static Span<double> d_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
         {
             Span<double> coeff_c2s = g_c2s[2].cart2sph.Span;
             for (FINT i = 0; i < nket; i++)
@@ -3710,224 +3712,222 @@ static Span<double> d_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double
             }
             return gsph;
         }
-static Span<double> d_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
-                                  FINT lds, FINT nbra, FINT l)
-{
+        static Span<double> d_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
+                                          FINT lds, FINT nbra, FINT l)
+        {
             Span<double> coeff_c2s = g_c2s[2].cart2sph.Span;
             Span<double> pgsph = gsph;
-    FINT i;
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[1 * lds + i] = coeff_c2s[10] * gcart[4 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[2 * lds + i] = coeff_c2s[12] * gcart[0 * nbra + i]
-                      + coeff_c2s[15] * gcart[3 * nbra + i]
-                      + coeff_c2s[17] * gcart[5 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[3 * lds + i] = coeff_c2s[20] * gcart[2 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[4 * lds + i] = coeff_c2s[24] * gcart[0 * nbra + i]
-                      + coeff_c2s[27] * gcart[3 * nbra + i];
-    }
-    return pgsph;
-}
+            FINT i;
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[1 * lds + i] = coeff_c2s[10] * gcart[4 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[2 * lds + i] = coeff_c2s[12] * gcart[0 * nbra + i]
+                              + coeff_c2s[15] * gcart[3 * nbra + i]
+                              + coeff_c2s[17] * gcart[5 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[3 * lds + i] = coeff_c2s[20] * gcart[2 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[4 * lds + i] = coeff_c2s[24] * gcart[0 * nbra + i]
+                              + coeff_c2s[27] * gcart[3 * nbra + i];
+            }
+            return pgsph;
+        }
 
-// transform f function from cartesian to spheric
-static Span<double> f_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
-{
-    double* coeff_c2s = g_c2s[3].cart2sph;
-    double* pgsph = gsph;
-    FINT i;
-    for (i = 0; i < nket; i++)
-    {
-        gsph[0] = coeff_c2s[1] * gcart[1]
-                + coeff_c2s[6] * gcart[6];
-        gsph[1] = coeff_c2s[14] * gcart[4];
-        gsph[2] = coeff_c2s[21] * gcart[1]
-                + coeff_c2s[26] * gcart[6]
-                + coeff_c2s[28] * gcart[8];
-        gsph[3] = coeff_c2s[32] * gcart[2]
-                + coeff_c2s[37] * gcart[7]
-                + coeff_c2s[39] * gcart[9];
-        gsph[4] = coeff_c2s[40] * gcart[0]
-                + coeff_c2s[43] * gcart[3]
-                + coeff_c2s[45] * gcart[5];
-        gsph[5] = coeff_c2s[52] * gcart[2]
-                + coeff_c2s[57] * gcart[7];
-        gsph[6] = coeff_c2s[60] * gcart[0]
-                + coeff_c2s[63] * gcart[3];
-        gsph += 7;
-        gcart += 10;
-    }
-    return pgsph;
-}
-static double* f_ket_cart2spheric(double* gsph, double* gcart,
+        // transform f function from cartesian to spheric
+        static Span<double> f_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            Span<double> coeff_c2s = g_c2s[3].cart2sph.Span;
+            for (FINT i = 0; i < nket; i++)
+            {
+                Span<double> gsphi = gsph.Slice(7 * i, 5);
+                Span<double> gcarti = gcart.Slice(10 * i, 6);
+                gsphi[0] = coeff_c2s[1] * gcarti[1]
+                + coeff_c2s[6] * gcarti[6];
+                gsphi[1] = coeff_c2s[14] * gcarti[4];
+                gsphi[2] = coeff_c2s[21] * gcarti[1]
+                        + coeff_c2s[26] * gcarti[6]
+                        + coeff_c2s[28] * gcarti[8];
+                gsphi[3] = coeff_c2s[32] * gcarti[2]
+                        + coeff_c2s[37] * gcarti[7]
+                        + coeff_c2s[39] * gcarti[9];
+                gsphi[4] = coeff_c2s[40] * gcarti[0]
+                        + coeff_c2s[43] * gcarti[3]
+                        + coeff_c2s[45] * gcarti[5];
+                gsphi[5] = coeff_c2s[52] * gcarti[2]
+                        + coeff_c2s[57] * gcarti[7];
+                gsphi[6] = coeff_c2s[60] * gcarti[0]
+                        + coeff_c2s[63] * gcarti[3];
+            }
+            return gsph;
+        }
+        static Span<double> f_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
                                   FINT lds, FINT nbra, FINT l)
-{
-    double* coeff_c2s = g_c2s[3].cart2sph;
-    double* pgsph = gsph;
-    FINT i;
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i]
-                      + coeff_c2s[6] * gcart[6 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[1 * lds + i] = coeff_c2s[14] * gcart[4 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[2 * lds + i] = coeff_c2s[21] * gcart[1 * nbra + i]
-                      + coeff_c2s[26] * gcart[6 * nbra + i]
-                      + coeff_c2s[28] * gcart[8 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[3 * lds + i] = coeff_c2s[32] * gcart[2 * nbra + i]
-                      + coeff_c2s[37] * gcart[7 * nbra + i]
-                      + coeff_c2s[39] * gcart[9 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[4 * lds + i] = coeff_c2s[40] * gcart[0 * nbra + i]
-                      + coeff_c2s[43] * gcart[3 * nbra + i]
-                      + coeff_c2s[45] * gcart[5 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[5 * lds + i] = coeff_c2s[52] * gcart[2 * nbra + i]
-                      + coeff_c2s[57] * gcart[7 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[6 * lds + i] = coeff_c2s[60] * gcart[0 * nbra + i]
-                      + coeff_c2s[63] * gcart[3 * nbra + i];
-    }
-    return pgsph;
-}
+        {
+            Span<double> coeff_c2s = g_c2s[3].cart2sph.Span;
+            Span<double> pgsph = gsph;
+            FINT i;
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i]
+                              + coeff_c2s[6] * gcart[6 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[1 * lds + i] = coeff_c2s[14] * gcart[4 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[2 * lds + i] = coeff_c2s[21] * gcart[1 * nbra + i]
+                              + coeff_c2s[26] * gcart[6 * nbra + i]
+                              + coeff_c2s[28] * gcart[8 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[3 * lds + i] = coeff_c2s[32] * gcart[2 * nbra + i]
+                              + coeff_c2s[37] * gcart[7 * nbra + i]
+                              + coeff_c2s[39] * gcart[9 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[4 * lds + i] = coeff_c2s[40] * gcart[0 * nbra + i]
+                              + coeff_c2s[43] * gcart[3 * nbra + i]
+                              + coeff_c2s[45] * gcart[5 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[5 * lds + i] = coeff_c2s[52] * gcart[2 * nbra + i]
+                              + coeff_c2s[57] * gcart[7 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[6 * lds + i] = coeff_c2s[60] * gcart[0 * nbra + i]
+                              + coeff_c2s[63] * gcart[3 * nbra + i];
+            }
+            return pgsph;
+        }
 
-// transform g function from cartesian to spheric
-static Span<double> g_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
-{
-    double* coeff_c2s = g_c2s[4].cart2sph;
-    double* pgsph = gsph;
-    FINT i;
-    for (i = 0; i < nket; i++)
-    {
-        gsph[0] = coeff_c2s[1] * gcart[1]
-                + coeff_c2s[6] * gcart[6];
-        gsph[1] = coeff_c2s[19] * gcart[4]
-                + coeff_c2s[26] * gcart[11];
-        gsph[2] = coeff_c2s[31] * gcart[1]
-                + coeff_c2s[36] * gcart[6]
-                + coeff_c2s[38] * gcart[8];
-        gsph[3] = coeff_c2s[49] * gcart[4]
-                + coeff_c2s[56] * gcart[11]
-                + coeff_c2s[58] * gcart[13];
-        gsph[4] = coeff_c2s[60] * gcart[0]
-                + coeff_c2s[63] * gcart[3]
-                + coeff_c2s[65] * gcart[5]
-                + coeff_c2s[70] * gcart[10]
-                + coeff_c2s[72] * gcart[12]
-                + coeff_c2s[74] * gcart[14];
-        gsph[5] = coeff_c2s[77] * gcart[2]
-                + coeff_c2s[82] * gcart[7]
-                + coeff_c2s[84] * gcart[9];
-        gsph[6] = coeff_c2s[90] * gcart[0]
-                + coeff_c2s[95] * gcart[5]
-                + coeff_c2s[100] * gcart[10]
-                + coeff_c2s[102] * gcart[12];
-        gsph[7] = coeff_c2s[107] * gcart[2]
-                + coeff_c2s[112] * gcart[7];
-        gsph[8] = coeff_c2s[120] * gcart[0]
-                + coeff_c2s[123] * gcart[3]
-                + coeff_c2s[130] * gcart[10];
-        gsph += 9;
-        gcart += 15;
-    }
-    return pgsph;
-}
-static double* g_ket_cart2spheric(double* gsph, double* gcart,
-                                  FINT lds, FINT nbra, FINT l)
-{
-    double* coeff_c2s = g_c2s[4].cart2sph;
-    double* pgsph = gsph;
-    FINT i;
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i]
-                      + coeff_c2s[6] * gcart[6 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[1 * lds + i] = coeff_c2s[19] * gcart[4 * nbra + i]
-                      + coeff_c2s[26] * gcart[11 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[2 * lds + i] = coeff_c2s[31] * gcart[1 * nbra + i]
-                      + coeff_c2s[36] * gcart[6 * nbra + i]
-                      + coeff_c2s[38] * gcart[8 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[3 * lds + i] = coeff_c2s[49] * gcart[4 * nbra + i]
-                      + coeff_c2s[56] * gcart[11 * nbra + i]
-                      + coeff_c2s[58] * gcart[13 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[4 * lds + i] = coeff_c2s[60] * gcart[0 * nbra + i]
-                      + coeff_c2s[63] * gcart[3 * nbra + i]
-                      + coeff_c2s[65] * gcart[5 * nbra + i]
-                      + coeff_c2s[70] * gcart[10 * nbra + i]
-                      + coeff_c2s[72] * gcart[12 * nbra + i]
-                      + coeff_c2s[74] * gcart[14 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[5 * lds + i] = coeff_c2s[77] * gcart[2 * nbra + i]
-                      + coeff_c2s[82] * gcart[7 * nbra + i]
-                      + coeff_c2s[84] * gcart[9 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[6 * lds + i] = coeff_c2s[90] * gcart[0 * nbra + i]
-                      + coeff_c2s[95] * gcart[5 * nbra + i]
-                      + coeff_c2s[100] * gcart[10 * nbra + i]
-                      + coeff_c2s[102] * gcart[12 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[7 * lds + i] = coeff_c2s[107] * gcart[2 * nbra + i]
-                      + coeff_c2s[112] * gcart[7 * nbra + i];
-    }
-    for (i = 0; i < nbra; i++)
-    {
-        gsph[8 * lds + i] = coeff_c2s[120] * gcart[0 * nbra + i]
-                      + coeff_c2s[123] * gcart[3 * nbra + i]
-                      + coeff_c2s[130] * gcart[10 * nbra + i];
-    }
-    return pgsph;
-}
+        // transform g function from cartesian to spheric
+        static Span<double> g_bra_cart2spheric(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            Span<double> coeff_c2s = g_c2s[4].cart2sph.Span;
+            Span<double> pgsph = gsph;
+            FINT i;
+            for (i = 0; i < nket; i++)
+            {
+                Span<double> gsphi = gsph.Slice(9 * i, 9);
+                Span<double> gcarti = gcart.Slice(15 * i, 15);
+                gsphi[0] = coeff_c2s[1] * gcarti[1]
+                + coeff_c2s[6] * gcarti[6];
+                gsphi[1] = coeff_c2s[19] * gcarti[4]
+                        + coeff_c2s[26] * gcarti[11];
+                gsphi[2] = coeff_c2s[31] * gcarti[1]
+                        + coeff_c2s[36] * gcarti[6]
+                        + coeff_c2s[38] * gcarti[8];
+                gsphi[3] = coeff_c2s[49] * gcarti[4]
+                        + coeff_c2s[56] * gcarti[11]
+                        + coeff_c2s[58] * gcarti[13];
+                gsphi[4] = coeff_c2s[60] * gcarti[0]
+                        + coeff_c2s[63] * gcarti[3]
+                        + coeff_c2s[65] * gcarti[5]
+                        + coeff_c2s[70] * gcarti[10]
+                        + coeff_c2s[72] * gcarti[12]
+                        + coeff_c2s[74] * gcarti[14];
+                gsphi[5] = coeff_c2s[77] * gcarti[2]
+                        + coeff_c2s[82] * gcarti[7]
+                        + coeff_c2s[84] * gcarti[9];
+                gsphi[6] = coeff_c2s[90] * gcarti[0]
+                        + coeff_c2s[95] * gcarti[5]
+                        + coeff_c2s[100] * gcarti[10]
+                        + coeff_c2s[102] * gcarti[12];
+                gsphi[7] = coeff_c2s[107] * gcarti[2]
+                        + coeff_c2s[112] * gcarti[7];
+                gsphi[8] = coeff_c2s[120] * gcarti[0]
+                        + coeff_c2s[123] * gcarti[3]
+                        + coeff_c2s[130] * gcarti[10];
+            }
+            return pgsph;
+        }
+        static Span<double> g_ket_cart2spheric(Span<double> gsph, Span<double> gcart,
+                                          FINT lds, FINT nbra, FINT l)
+        {
+            Span<double> coeff_c2s = g_c2s[4].cart2sph.Span;
+            Span<double> pgsph = gsph;
+            FINT i;
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[0 * lds + i] = coeff_c2s[1] * gcart[1 * nbra + i]
+                              + coeff_c2s[6] * gcart[6 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[1 * lds + i] = coeff_c2s[19] * gcart[4 * nbra + i]
+                              + coeff_c2s[26] * gcart[11 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[2 * lds + i] = coeff_c2s[31] * gcart[1 * nbra + i]
+                              + coeff_c2s[36] * gcart[6 * nbra + i]
+                              + coeff_c2s[38] * gcart[8 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[3 * lds + i] = coeff_c2s[49] * gcart[4 * nbra + i]
+                              + coeff_c2s[56] * gcart[11 * nbra + i]
+                              + coeff_c2s[58] * gcart[13 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[4 * lds + i] = coeff_c2s[60] * gcart[0 * nbra + i]
+                              + coeff_c2s[63] * gcart[3 * nbra + i]
+                              + coeff_c2s[65] * gcart[5 * nbra + i]
+                              + coeff_c2s[70] * gcart[10 * nbra + i]
+                              + coeff_c2s[72] * gcart[12 * nbra + i]
+                              + coeff_c2s[74] * gcart[14 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[5 * lds + i] = coeff_c2s[77] * gcart[2 * nbra + i]
+                              + coeff_c2s[82] * gcart[7 * nbra + i]
+                              + coeff_c2s[84] * gcart[9 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[6 * lds + i] = coeff_c2s[90] * gcart[0 * nbra + i]
+                              + coeff_c2s[95] * gcart[5 * nbra + i]
+                              + coeff_c2s[100] * gcart[10 * nbra + i]
+                              + coeff_c2s[102] * gcart[12 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[7 * lds + i] = coeff_c2s[107] * gcart[2 * nbra + i]
+                              + coeff_c2s[112] * gcart[7 * nbra + i];
+            }
+            for (i = 0; i < nbra; i++)
+            {
+                gsph[8 * lds + i] = coeff_c2s[120] * gcart[0 * nbra + i]
+                              + coeff_c2s[123] * gcart[3 * nbra + i]
+                              + coeff_c2s[130] * gcart[10 * nbra + i];
+            }
+            return pgsph;
+        }
 
-/*
- * return the address of gemm results, for s,p function, results ==
- * input, so return the input address optimize
- */
-static Func<Span<double>, FINT, Span<double>, FINT, Span<double>>[] c2s_bra_sph = [
-    s_bra_cart2spheric,
+        /*
+         * return the address of gemm results, for s,p function, results ==
+         * input, so return the input address optimize
+         */
+        static Func<Span<double>, FINT, Span<double>, FINT, Span<double>>[] c2s_bra_sph = [
+            s_bra_cart2spheric,
         p_bra_cart2spheric,
         d_bra_cart2spheric,
         f_bra_cart2spheric,
@@ -3945,8 +3945,8 @@ static Func<Span<double>, FINT, Span<double>, FINT, Span<double>>[] c2s_bra_sph 
         a_bra_cart2spheric,
 ];
 
- static Func<Span<double>, Span<double>, FINT, FINT, FINT, Span<double>>[] c2s_ket_sph = [
-    s_ket_cart2spheric,
+        static Func<Span<double>, Span<double>, FINT, FINT, FINT, Span<double>>[] c2s_ket_sph = [
+           s_ket_cart2spheric,
         p_ket_cart2spheric,
         d_ket_cart2spheric,
         f_ket_cart2spheric,
@@ -3984,3319 +3984,3353 @@ static Func<Span<double>, FINT, Span<double>, FINT, Span<double>>[] c2s_bra_sph 
 ];
 
 
-// [ca, cb] * [ 1+1j*z, y+1j*x]
-//            [-y+1j*x, 1-1j*z]
-static void a_bra_cart2spinor_si(double* gspR, double* gspI,
-                                 double* gx, double* gy, double* gz, double* g1,
-                                 FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * nd;
-    double* gspbI = gspI + nket * nd;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1, vx, vy, vz;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
+        // [ca, cb] * [ 1+1j*z, y+1j*x]
+        //            [-y+1j*x, 1-1j*z]
+        static void a_bra_cart2spinor_si(Span<double> gspR, Span<double> gspI,
+                                         Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                         FINT nket, FINT kappa, FINT l)
         {
-            saR = 0;
-            saI = 0;
-            sbR = 0;
-            sbI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf; n++)
-            {
-                v1 = g1[j * nf + n];
-                vx = gx[j * nf + n];
-                vy = gy[j * nf + n];
-                vz = gz[j * nf + n];
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-                saR += caR * v1 + caI * vz - cbR * vy + cbI * vx;
-                saI += -caI * v1 + caR * vz + cbI * vy + cbR * vx;
-                sbR += cbR * v1 - cbI * vz + caR * vy + caI * vx;
-                sbI += -cbI * v1 - cbR * vz - caI * vy + caR * vx;
-            }
-            gspaR[j * nd + i] = saR;
-            gspaI[j * nd + i] = saI;
-            gspbR[j * nd + i] = sbR;
-            gspbI[j * nd + i] = sbI;
-        }
-    }
-}
-
-static void a_bra_cart2spinor_sf(double* gspR, double* gspI,
-                                 double* gx, double* gy, double* gz, double* g1,
-                                 FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * nd;
-    double* gspbI = gspI + nket * nd;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
-        {
-            saR = 0;
-            saI = 0;
-            sbR = 0;
-            sbI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf; n++)
-            {
-                v1 = g1[j * nf + n];
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-                saR += caR * v1;
-                saI += -caI * v1;
-                sbR += cbR * v1;
-                sbI += -cbI * v1;
-            }
-            gspaR[j * nd + i] = saR;
-            gspaI[j * nd + i] = saI;
-            gspbR[j * nd + i] = sbR;
-            gspbI[j * nd + i] = sbI;
-        }
-    }
-}
-
-static void a_bra1_cart2spinor_si(double* gspR, double* gspI,
-                                  double* gx, double* gy, double* gz, double* g1,
-                                  FINT ngrids, FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ndg = nd * ngrids;
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * ndg;
-    double* gspbI = gspI + nket * ndg;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n, m;
-    double caR, caI, cbR, cbI, v1, vx, vy, vz;
-
-    for (j = 0; j < nket; j++)
-    {
-#pragma GCC ivdep
-        for (i = 0; i < ndg; i++)
-        {
-            gspaR[j * ndg + i] = 0;
-            gspaI[j * ndg + i] = 0;
-            gspbR[j * ndg + i] = 0;
-            gspbI[j * ndg + i] = 0;
-        }
-        for (i = 0; i < nd; i++)
-        {
-            for (n = 0; n < nf; n++)
-            {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (m = 0; m < ngrids; m++)
-                {
-                    v1 = g1[(j * nf + n) * ngrids + m];
-                    vx = gx[(j * nf + n) * ngrids + m];
-                    vy = gy[(j * nf + n) * ngrids + m];
-                    vz = gz[(j * nf + n) * ngrids + m];
-                    gspaR[(j * nd + i) * ngrids + m] += caR * v1 + caI * vz - cbR * vy + cbI * vx;
-                    gspaI[(j * nd + i) * ngrids + m] += -caI * v1 + caR * vz + cbI * vy + cbR * vx;
-                    gspbR[(j * nd + i) * ngrids + m] += cbR * v1 - cbI * vz + caR * vy + caI * vx;
-                    gspbI[(j * nd + i) * ngrids + m] += -cbI * v1 - cbR * vz - caI * vy + caR * vx;
-                }
-            }
-        }
-    }
-}
-
-static void a_bra1_cart2spinor_sf(double* gspR, double* gspI,
-                                  double* gx, double* gy, double* gz, double* g1,
-                                  FINT ngrids, FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ndg = nd * ngrids;
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * ndg;
-    double* gspbI = gspI + nket * ndg;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n, m;
-    double caR, caI, cbR, cbI, v1;
-
-    for (j = 0; j < nket; j++)
-    {
-#pragma GCC ivdep
-        for (i = 0; i < ndg; i++)
-        {
-            gspaR[j * ndg + i] = 0;
-            gspaI[j * ndg + i] = 0;
-            gspbR[j * ndg + i] = 0;
-            gspbI[j * ndg + i] = 0;
-        }
-        for (i = 0; i < nd; i++)
-        {
-            for (n = 0; n < nf; n++)
-            {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (m = 0; m < ngrids; m++)
-                {
-                    v1 = g1[(j * nf + n) * ngrids + m];
-                    gspaR[(j * nd + i) * ngrids + m] += caR * v1;
-                    gspaI[(j * nd + i) * ngrids + m] += -caI * v1;
-                    gspbR[(j * nd + i) * ngrids + m] += cbR * v1;
-                    gspbI[(j * nd + i) * ngrids + m] += -cbI * v1;
-                }
-            }
-        }
-    }
-}
-
-static void a_bra1_cart2spinor_zi(double* gspR, double* gspI,
-                                  double* gx, double* gy, double* gz, double* g1,
-                                  FINT ngrids, FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ndg = nd * ngrids;
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * ndg;
-    double* gspbI = gspI + nket * ndg;
-    double* gxR = gx;
-    double* gyR = gy;
-    double* gzR = gz;
-    double* g1R = g1;
-    double* gxI = gx + nket * nf * ngrids;
-    double* gyI = gy + nket * nf * ngrids;
-    double* gzI = gz + nket * nf * ngrids;
-    double* g1I = g1 + nket * nf * ngrids;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n, m;
-    double caR, caI, cbR, cbI;
-    double v1R, vxR, vyR, vzR;
-    double v1I, vxI, vyI, vzI;
-    double v11R, v12R, v21R, v22R;
-    double v11I, v12I, v21I, v22I;
-
-    for (j = 0; j < nket; j++)
-    {
-#pragma GCC ivdep
-        for (i = 0; i < ndg; i++)
-        {
-            gspaR[j * ndg + i] = 0;
-            gspaI[j * ndg + i] = 0;
-            gspbR[j * ndg + i] = 0;
-            gspbI[j * ndg + i] = 0;
-        }
-        for (i = 0; i < nd; i++)
-        {
-            for (n = 0; n < nf; n++)
-            {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (m = 0; m < ngrids; m++)
-                {
-                    // [ 1+1j*z, y+1j*x]
-                    // [-y+1j*x, 1-1j*z]
-                    v11R = g1R[(j * nf + n) * ngrids + m] - gzI[(j * nf + n) * ngrids + m];
-                    v11I = g1I[(j * nf + n) * ngrids + m] + gzR[(j * nf + n) * ngrids + m];
-                    v12R = gyR[(j * nf + n) * ngrids + m] - gxI[(j * nf + n) * ngrids + m];
-                    v12I = gyI[(j * nf + n) * ngrids + m] + gxR[(j * nf + n) * ngrids + m];
-                    v21R = -gyR[(j * nf + n) * ngrids + m] - gxI[(j * nf + n) * ngrids + m];
-                    v21I = -gyI[(j * nf + n) * ngrids + m] + gxR[(j * nf + n) * ngrids + m];
-                    v22R = g1R[(j * nf + n) * ngrids + m] + gzI[(j * nf + n) * ngrids + m];
-                    v22I = g1I[(j * nf + n) * ngrids + m] - gzR[(j * nf + n) * ngrids + m];
-                    gspaR[(j * nd + i) * ngrids + m] += caR * v11R + caI * v11I + cbR * v21R + cbI * v21I;
-                    gspaI[(j * nd + i) * ngrids + m] += caR * v11I - caI * v11R + cbR * v21I - cbI * v21R;
-                    gspbR[(j * nd + i) * ngrids + m] += caR * v12R + caI * v12I + cbR * v22R + cbI * v22I;
-                    gspbI[(j * nd + i) * ngrids + m] += caR * v12I - caI * v12R + cbR * v22I - cbI * v22R;
-                }
-            }
-        }
-    }
-}
-
-static void a_bra1_cart2spinor_zf(double* gspR, double* gspI,
-                                  double* gx, double* gy, double* gz, double* g1,
-                                  FINT ngrids, FINT nket, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ndg = nd * ngrids;
-    double* gspaR = gspR;
-    double* gspaI = gspI;
-    double* gspbR = gspR + nket * ndg;
-    double* gspbI = gspI + nket * ndg;
-    double* g1R = g1;
-    double* g1I = g1 + nket * nf * ngrids;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n, m;
-    double caR, caI, cbR, cbI, v1R, v1I;
-
-    for (j = 0; j < nket; j++)
-    {
-#pragma GCC ivdep
-        for (i = 0; i < ndg; i++)
-        {
-            gspaR[j * ndg + i] = 0;
-            gspaI[j * ndg + i] = 0;
-            gspbR[j * ndg + i] = 0;
-            gspbI[j * ndg + i] = 0;
-        }
-        for (i = 0; i < nd; i++)
-        {
-            for (n = 0; n < nf; n++)
-            {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (m = 0; m < ngrids; m++)
-                {
-                    v1R = g1R[(j * nf + n) * ngrids + m];
-                    v1I = g1I[(j * nf + n) * ngrids + m];
-                    gspaR[(j * nd + i) * ngrids + m] += caR * v1R + caI * v1I;
-                    gspaI[(j * nd + i) * ngrids + m] += caR * v1I - caI * v1R;
-                    gspbR[(j * nd + i) * ngrids + m] += cbR * v1R + cbI * v1I;
-                    gspbI[(j * nd + i) * ngrids + m] += cbR * v1I - cbI * v1R;
-                }
-            }
-        }
-    }
-}
-
-static void a_ket_cart2spinor(double* gspR, double* gspI,
-                              double* gcartR, double* gcartI,
-                              FINT nbra, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double cR, cI, gR, gI;
-
-    for (i = 0; i < nd; i++)
-    {
-#pragma GCC ivdep
-        for (j = 0; j < nbra; j++)
-        {
-            gspR[j + i * nbra] = 0;
-            gspI[j + i * nbra] = 0;
-        }
-        for (n = 0; n < nf2; n++)
-        {
-            cR = coeffR[i * nf2 + n];
-            cI = coeffI[i * nf2 + n];
-            if (cR != 0)
-            {
-                if (cI != 0)
-                {
-#pragma GCC ivdep
-                    for (j = 0; j < nbra; j++)
-                    {
-                        gR = gcartR[j + n * nbra];
-                        gI = gcartI[j + n * nbra];
-                        gspR[j + i * nbra] += cR * gR - cI * gI;
-                        gspI[j + i * nbra] += cI * gR + cR * gI;
-                    }
-                }
-                else
-                {
-#pragma GCC ivdep
-                    for (j = 0; j < nbra; j++)
-                    {
-                        gR = gcartR[j + n * nbra];
-                        gI = gcartI[j + n * nbra];
-                        gspR[j + i * nbra] += cR * gR;
-                        gspI[j + i * nbra] += cR * gI;
-                    }
-                }
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspaR = gspR;
+            Span<double> gspaI = gspI;
+            Span<double> gspbR = gspR[(nket * nd)..];
+            Span<double> gspbI = gspI[(nket * nd)..];
+            Span<double> coeffR;
+            Span<double> coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
             else
             {
-                if (cI != 0)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1, vx, vy, vz;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < nd; i++)
                 {
-#pragma GCC ivdep
-                    for (j = 0; j < nbra; j++)
+                    saR = 0;
+                    saI = 0;
+                    sbR = 0;
+                    sbI = 0;
+                    for (n = 0; n < nf; n++)
                     {
-                        gR = gcartR[j + n * nbra];
-                        gI = gcartI[j + n * nbra];
-                        gspR[j + i * nbra] += -cI * gI;
-                        gspI[j + i * nbra] += cI * gR;
+                        v1 = g1[j * nf + n];
+                        vx = gx[j * nf + n];
+                        vy = gy[j * nf + n];
+                        vz = gz[j * nf + n];
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        saR += caR * v1 + caI * vz - cbR * vy + cbI * vx;
+                        saI += -caI * v1 + caR * vz + cbI * vy + cbR * vx;
+                        sbR += cbR * v1 - cbI * vz + caR * vy + caI * vx;
+                        sbI += -cbI * v1 - cbR * vz - caI * vy + caR * vx;
                     }
+                    gspaR[j * nd + i] = saR;
+                    gspaI[j * nd + i] = saI;
+                    gspbR[j * nd + i] = sbR;
+                    gspbI[j * nd + i] = sbI;
                 }
             }
         }
-    }
-}
 
-// with phase "i"
-static void a_iket_cart2spinor(double* gspR, double* gspI,
-                               double* gcartR, double* gcartI,
-                               FINT nbra, FINT kappa, FINT l)
-{
-    a_ket_cart2spinor(gspI, gspR, gcartR, gcartI, nbra, kappa, l);
-    FINT size = _len_spinor(kappa, l) * nbra;
-    FINT i;
-    for (i = 0; i < size; i++)
-    {
-        gspR[i] = -gspR[i];
-    }
-}
-
-static void a_ket1_cart2spinor(double* gspR, double* gspI,
-                               double* gcartR, double* gcartI,
-                               FINT nbra, FINT counts, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    FINT nds = nd * nbra;
-    FINT nfs = nf * nbra;
-    double* gcartaR = gcartR;
-    double* gcartaI = gcartI;
-    double* gcartbR = gcartaR + nfs * counts;
-    double* gcartbI = gcartaI + nfs * counts;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, k, n;
-    double caR, caI, cbR, cbI, gaR, gaI, gbR, gbI;
-
-    for (i = 0; i < nd; i++)
-    {
-        for (k = 0; k < counts; k++)
+        static void a_bra_cart2spinor_sf(Span<double> gspR, Span<double> gspI,
+                                         Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                         FINT nket, FINT kappa, FINT l)
         {
-#pragma GCC ivdep
-            for (j = 0; j < nbra; j++)
-            {
-                gspR[k * nds + j + i * nbra] = 0;
-                gspI[k * nds + j + i * nbra] = 0;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspaR = gspR;
+            Span<double> gspaI = gspI;
+            Span<double> gspbR = gspR[(nket * nd)..];
+            Span<double> gspbI = gspI[(nket * nd)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-        }
-        for (n = 0; n < nf; n++)
-        {
-            caR = coeffR[i * nf2 + n];
-            caI = coeffI[i * nf2 + n];
-            cbR = coeffR[i * nf2 + nf + n];
-            cbI = coeffI[i * nf2 + nf + n];
-            for (k = 0; k < counts; k++)
+            else
             {
-#pragma GCC ivdep
-                for (j = 0; j < nbra; j++)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < nd; i++)
                 {
-                    gaR = gcartaR[k * nfs + j + n * nbra];
-                    gaI = gcartaI[k * nfs + j + n * nbra];
-                    gbR = gcartbR[k * nfs + j + n * nbra];
-                    gbI = gcartbI[k * nfs + j + n * nbra];
-                    gspR[k * nds + j + i * nbra] += caR * gaR - caI * gaI + cbR * gbR - cbI * gbI;
-                    gspI[k * nds + j + i * nbra] += caR * gaI + caI * gaR + cbR * gbI + cbI * gbR;
-                }
-            }
-        }
-    }
-}
-
-// with phase "i"
-static void a_iket1_cart2spinor(double* gspR, double* gspI,
-                                double* gcartR, double* gcartI,
-                                FINT nbra, FINT counts, FINT kappa, FINT l)
-{
-    a_ket1_cart2spinor(gspI, gspR, gcartR, gcartI, nbra, counts, kappa, l);
-    FINT size = _len_spinor(kappa, l) * nbra * counts;
-    FINT i;
-    for (i = 0; i < size; i++)
-    {
-        gspR[i] = -gspR[i];
-    }
-}
-
-
-/*************************************************
- *
- * transform matrices
- *
- *************************************************/
-
-static void dcopy_ij(double* output, double* gctr,
-                      FINT ni,  FINT nj, FINT mi, FINT mj)
-{
-    FINT i, j;
-
-    for (j = 0; j < mj; j++)
-    {
-        for (i = 0; i < mi; i++)
-        {
-                output[j * ni + i] = gctr[j * mi + i];
-        }
-    }
-}
-
-static void zcopy_ij(Complex * output, double* gctrR, double* gctrI,
-                     FINT ni, FINT nj, FINT mi, FINT mj)
-{
-    double* dout = (double*)output;
-    FINT i, j;
-
-    for (j = 0; j < mj; j++)
-    {
-        for (i = 0; i < mi; i++)
-        {
-            dout[(j * ni + i) * OF_CMPLX] = gctrR[j * mi + i];
-            dout[(j * ni + i) * OF_CMPLX + 1] = gctrI[j * mi + i];
-        }
-    }
-}
-
-static void dcopy_grids_ij(double*output, const double* gctr,
-                           const FINT ngrids, const FINT ni, const FINT nj,
-                           const FINT mgrids, const FINT mi, const FINT mj)
-{
-    const size_t ngi = ngrids * ni;
-    const size_t mgi = mgrids * mi;
-    FINT i, j, m;
-
-    for (j = 0; j < mj; j++)
-    {
-        for (i = 0; i < mi; i++)
-        {
-#pragma GCC ivdep
-            for (m = 0; m < mgrids; m++)
-            {
-                        output[i * ngrids + m] = gctr[i * mgrids + m];
-            }
-        }
-                output += ngi;
-        gctr += mgi;
-    }
-}
-
-static void zcopy_grids_ij(double complex *output, double* gctrR, double* gctrI,
-                           const FINT ngrids, const FINT ni, const FINT nj,
-                           const FINT mgrids, const FINT mi, const FINT mj)
-{
-    size_t ngi = ngrids * ni * OF_CMPLX;
-    size_t mgi = mgrids * mi;
-    double* dout = (double*)output;
-    FINT i, j, m;
-
-    for (j = 0; j < mj; j++)
-    {
-        for (i = 0; i < mi; i++)
-        {
-#pragma GCC ivdep
-            for (m = 0; m < mgrids; m++)
-            {
-                dout[(i * ngrids + m) * OF_CMPLX] = gctrR[i * mgrids + m];
-                dout[(i * ngrids + m) * OF_CMPLX + 1] = gctrI[i * mgrids + m];
-            }
-        }
-        dout += ngi;
-        gctrR += mgi;
-        gctrI += mgi;
-    }
-}
-
-/*
- * gctr(i,k,l,j) . fijkl(i,j,k,l)
- * fijkl(ic:ic-1+di,jc:jc-1+dj,kc:kc-1+dk,lc:lc-1+dl)
- * fijkl(ni,nj,nk,nl), gctr(mi,mk,ml,mj)
- */
-static void dcopy_iklj(double* fijkl, const double* gctr,
-                       const FINT ni, const FINT nj, const FINT nk, const FINT nl,
-                       const FINT mi, const FINT mj, const FINT mk, const FINT ml)
-{
-    const size_t nij = ni * nj;
-    const size_t nijk = nij * nk;
-    const size_t mik = mi * mk;
-    const size_t mikl = mik * ml;
-    FINT i, j, k, l;
-    double* pijkl;
-    const double* pgctr;
-
-    switch (mi)
-    {
-        case 1:
-            for (l = 0; l < ml; l++)
-            {
-                for (k = 0; k < mk; k++)
-                {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-#pragma GCC ivdep
-                    for (j = 0; j < mj; j++)
+                    saR = 0;
+                    saI = 0;
+                    sbR = 0;
+                    sbI = 0;
+                    for (n = 0; n < nf; n++)
                     {
-                        pijkl[ni * j] = pgctr[mikl * j];
+                        v1 = g1[j * nf + n];
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        saR += caR * v1;
+                        saI += -caI * v1;
+                        sbR += cbR * v1;
+                        sbI += -cbI * v1;
                     }
+                    gspaR[j * nd + i] = saR;
+                    gspaI[j * nd + i] = saI;
+                    gspbR[j * nd + i] = sbR;
+                    gspbI[j * nd + i] = sbI;
                 }
-                fijkl += nijk;
-                gctr += mik;
             }
-            break;
-        case 3:
-            for (l = 0; l < ml; l++)
+        }
+
+        static void a_bra1_cart2spinor_si(Span<double> gspR, Span<double> gspI,
+                                          Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                          FINT ngrids, FINT nket, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ndg = nd * ngrids;
+            Span<double> gspaR = gspR;
+            Span<double> gspaI = gspI;
+            Span<double> gspbR = gspR[(nket * ndg)..];
+            Span<double> gspbI = gspI[(nket * ndg)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                for (k = 0; k < mk; k++)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n, m;
+            double caR, caI, cbR, cbI, v1, vx, vy, vz;
+
+            for (j = 0; j < nket; j++)
+            {
+
+                for (i = 0; i < ndg; i++)
                 {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-#pragma GCC ivdep
-                    for (j = 0; j < mj; j++)
-                    {
-                        pijkl[ni * j + 0] = pgctr[mikl * j + 0];
-                        pijkl[ni * j + 1] = pgctr[mikl * j + 1];
-                        pijkl[ni * j + 2] = pgctr[mikl * j + 2];
-                    }
+                    gspaR[j * ndg + i] = 0;
+                    gspaI[j * ndg + i] = 0;
+                    gspbR[j * ndg + i] = 0;
+                    gspbI[j * ndg + i] = 0;
                 }
-                fijkl += nijk;
-                gctr += mik;
-            }
-            break;
-        case 5:
-            for (l = 0; l < ml; l++)
-            {
-                for (k = 0; k < mk; k++)
+                for (i = 0; i < nd; i++)
                 {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-#pragma GCC ivdep
-                    for (j = 0; j < mj; j++)
+                    for (n = 0; n < nf; n++)
                     {
-                        pijkl[ni * j + 0] = pgctr[mikl * j + 0];
-                        pijkl[ni * j + 1] = pgctr[mikl * j + 1];
-                        pijkl[ni * j + 2] = pgctr[mikl * j + 2];
-                        pijkl[ni * j + 3] = pgctr[mikl * j + 3];
-                        pijkl[ni * j + 4] = pgctr[mikl * j + 4];
-                    }
-                }
-                fijkl += nijk;
-                gctr += mik;
-            }
-            break;
-        case 6:
-            for (l = 0; l < ml; l++)
-            {
-                for (k = 0; k < mk; k++)
-                {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-#pragma GCC ivdep
-                    for (j = 0; j < mj; j++)
-                    {
-                        pijkl[ni * j + 0] = pgctr[mikl * j + 0];
-                        pijkl[ni * j + 1] = pgctr[mikl * j + 1];
-                        pijkl[ni * j + 2] = pgctr[mikl * j + 2];
-                        pijkl[ni * j + 3] = pgctr[mikl * j + 3];
-                        pijkl[ni * j + 4] = pgctr[mikl * j + 4];
-                        pijkl[ni * j + 5] = pgctr[mikl * j + 5];
-                    }
-                }
-                fijkl += nijk;
-                gctr += mik;
-            }
-            break;
-        case 7:
-            for (l = 0; l < ml; l++)
-            {
-                for (k = 0; k < mk; k++)
-                {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-#pragma GCC ivdep
-                    for (j = 0; j < mj; j++)
-                    {
-                        pijkl[ni * j + 0] = pgctr[mikl * j + 0];
-                        pijkl[ni * j + 1] = pgctr[mikl * j + 1];
-                        pijkl[ni * j + 2] = pgctr[mikl * j + 2];
-                        pijkl[ni * j + 3] = pgctr[mikl * j + 3];
-                        pijkl[ni * j + 4] = pgctr[mikl * j + 4];
-                        pijkl[ni * j + 5] = pgctr[mikl * j + 5];
-                        pijkl[ni * j + 6] = pgctr[mikl * j + 6];
-                    }
-                }
-                fijkl += nijk;
-                gctr += mik;
-            }
-            break;
-        default:
-            for (l = 0; l < ml; l++)
-            {
-                for (k = 0; k < mk; k++)
-                {
-                    pijkl = fijkl + k * nij;
-                    pgctr = gctr + k * mi;
-                    for (j = 0; j < mj; j++)
-                    {
-#pragma GCC ivdep
-                        for (i = 0; i < mi; i++)
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (m = 0; m < ngrids; m++)
                         {
-                            pijkl[ni * j + i] = pgctr[mikl * j + i];
+                            v1 = g1[(j * nf + n) * ngrids + m];
+                            vx = gx[(j * nf + n) * ngrids + m];
+                            vy = gy[(j * nf + n) * ngrids + m];
+                            vz = gz[(j * nf + n) * ngrids + m];
+                            gspaR[(j * nd + i) * ngrids + m] += caR * v1 + caI * vz - cbR * vy + cbI * vx;
+                            gspaI[(j * nd + i) * ngrids + m] += -caI * v1 + caR * vz + cbI * vy + cbR * vx;
+                            gspbR[(j * nd + i) * ngrids + m] += cbR * v1 - cbI * vz + caR * vy + caI * vx;
+                            gspbI[(j * nd + i) * ngrids + m] += -cbI * v1 - cbR * vz - caI * vy + caR * vx;
                         }
                     }
                 }
-                fijkl += nijk;
-                gctr += mik;
             }
-    }
-}
+        }
 
-static void zcopy_iklj(double complex *fijkl, double* gctrR, double* gctrI,
-                       const FINT ni, const FINT nj, const FINT nk, const FINT nl,
-                       const FINT mi, const FINT mj, const FINT mk, const FINT ml)
-{
-    size_t nij = ni * nj;
-    size_t nijk = nij * nk;
-    size_t mik = mi * mk;
-    size_t mikl = mik * ml;
-    FINT i, j, k, l;
-    double* pijkl;
-    double* pgctrR, *pgctrI;
-
-    for (l = 0; l < ml; l++)
-    {
-        for (k = 0; k < mk; k++)
+        static void a_bra1_cart2spinor_sf(Span<double> gspR, Span<double> gspI,
+                                          Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                          FINT ngrids, FINT nket, FINT kappa, FINT l)
         {
-            pijkl = (double*)(fijkl + k * nij);
-            pgctrR = gctrR + k * mi;
-            pgctrI = gctrI + k * mi;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ndg = nd * ngrids;
+            Span<double> gspaR = gspR;
+            Span<double> gspaI = gspI;
+            Span<double> gspbR = gspR[(nket * ndg)..];
+            Span<double> gspbI = gspI[(nket * ndg)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
+            {
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n, m;
+            double caR, caI, cbR, cbI, v1;
+
+            for (j = 0; j < nket; j++)
+            {
+
+                for (i = 0; i < ndg; i++)
+                {
+                    gspaR[j * ndg + i] = 0;
+                    gspaI[j * ndg + i] = 0;
+                    gspbR[j * ndg + i] = 0;
+                    gspbI[j * ndg + i] = 0;
+                }
+                for (i = 0; i < nd; i++)
+                {
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (m = 0; m < ngrids; m++)
+                        {
+                            v1 = g1[(j * nf + n) * ngrids + m];
+                            gspaR[(j * nd + i) * ngrids + m] += caR * v1;
+                            gspaI[(j * nd + i) * ngrids + m] += -caI * v1;
+                            gspbR[(j * nd + i) * ngrids + m] += cbR * v1;
+                            gspbI[(j * nd + i) * ngrids + m] += -cbI * v1;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void a_bra1_cart2spinor_zi(Span<double> gspR, Span<double> gspI,
+                                          Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                          FINT ngrids, FINT nket, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ndg = nd * ngrids;
+            Span<double> gspaR = gspR;
+            Span<double> gspaI = gspI;
+            Span<double> gspbR = gspR[(nket * ndg)..];
+            Span<double> gspbI = gspI[(nket * ndg)..];
+            Span<double> gxR = gx;
+            Span<double> gyR = gy;
+            Span<double> gzR = gz;
+            Span<double> g1R = g1;
+            Span<double> gxI = gx[(nket * nf * ngrids)..];
+            Span<double> gyI = gy[(nket * nf * ngrids)..];
+            Span<double> gzI = gz[(nket * nf * ngrids)..];
+            Span<double> g1I = g1[(nket * nf * ngrids)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
+            {
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n, m;
+            double caR, caI, cbR, cbI;
+            double v1R, vxR, vyR, vzR;
+            double v1I, vxI, vyI, vzI;
+            double v11R, v12R, v21R, v22R;
+            double v11I, v12I, v21I, v22I;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < ndg; i++)
+                {
+                    gspaR[j * ndg + i] = 0;
+                    gspaI[j * ndg + i] = 0;
+                    gspbR[j * ndg + i] = 0;
+                    gspbI[j * ndg + i] = 0;
+                }
+                for (i = 0; i < nd; i++)
+                {
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        for (m = 0; m < ngrids; m++)
+                        {
+                            // [ 1+1j*z, y+1j*x]
+                            // [-y+1j*x, 1-1j*z]
+                            v11R = g1R[(j * nf + n) * ngrids + m] - gzI[(j * nf + n) * ngrids + m];
+                            v11I = g1I[(j * nf + n) * ngrids + m] + gzR[(j * nf + n) * ngrids + m];
+                            v12R = gyR[(j * nf + n) * ngrids + m] - gxI[(j * nf + n) * ngrids + m];
+                            v12I = gyI[(j * nf + n) * ngrids + m] + gxR[(j * nf + n) * ngrids + m];
+                            v21R = -gyR[(j * nf + n) * ngrids + m] - gxI[(j * nf + n) * ngrids + m];
+                            v21I = -gyI[(j * nf + n) * ngrids + m] + gxR[(j * nf + n) * ngrids + m];
+                            v22R = g1R[(j * nf + n) * ngrids + m] + gzI[(j * nf + n) * ngrids + m];
+                            v22I = g1I[(j * nf + n) * ngrids + m] - gzR[(j * nf + n) * ngrids + m];
+                            gspaR[(j * nd + i) * ngrids + m] += caR * v11R + caI * v11I + cbR * v21R + cbI * v21I;
+                            gspaI[(j * nd + i) * ngrids + m] += caR * v11I - caI * v11R + cbR * v21I - cbI * v21R;
+                            gspbR[(j * nd + i) * ngrids + m] += caR * v12R + caI * v12I + cbR * v22R + cbI * v22I;
+                            gspbI[(j * nd + i) * ngrids + m] += caR * v12I - caI * v12R + cbR * v22I - cbI * v22R;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void a_bra1_cart2spinor_zf(Span<double> gspR, Span<double> gspI,
+                                          Span<double> gx, Span<double> gy, Span<double> gz, Span<double> g1,
+                                          FINT ngrids, FINT nket, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ndg = nd * ngrids;
+            FINT chunk_size = nket * ndg;
+            FINT chunk_size2 = nket * nf * ngrids;
+            Span<double> gspaR = gspR[..chunk_size];
+            Span<double> gspaI = gspI[..chunk_size];
+            Span<double> gspbR = gspR[chunk_size..(chunk_size * 2)];
+            Span<double> gspbI = gspI[chunk_size..(chunk_size * 2)];
+            Span<double> g1R = g1[..chunk_size2];
+            Span<double> g1I = g1[chunk_size2..(chunk_size2 * 2)];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
+            {
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n, m;
+            double caR, caI, cbR, cbI, v1R, v1I;
+
+            for (j = 0; j < nket; j++)
+            {
+
+                for (i = 0; i < ndg; i++)
+                {
+                    gspaR[j * ndg + i] = 0;
+                    gspaI[j * ndg + i] = 0;
+                    gspbR[j * ndg + i] = 0;
+                    gspbI[j * ndg + i] = 0;
+                }
+                for (i = 0; i < nd; i++)
+                {
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (m = 0; m < ngrids; m++)
+                        {
+                            v1R = g1R[(j * nf + n) * ngrids + m];
+                            v1I = g1I[(j * nf + n) * ngrids + m];
+                            gspaR[(j * nd + i) * ngrids + m] += caR * v1R + caI * v1I;
+                            gspaI[(j * nd + i) * ngrids + m] += caR * v1I - caI * v1R;
+                            gspbR[(j * nd + i) * ngrids + m] += cbR * v1R + cbI * v1I;
+                            gspbI[(j * nd + i) * ngrids + m] += cbR * v1I - cbI * v1R;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void a_ket_cart2spinor(Span<double> gspR, Span<double> gspI,
+                                      Span<double> gcartR, Span<double> gcartI,
+                                      FINT nbra, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
+            {
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double cR, cI, gR, gI;
+
+            for (i = 0; i < nd; i++)
+            {
+
+                for (j = 0; j < nbra; j++)
+                {
+                    gspR[j + i * nbra] = 0;
+                    gspI[j + i * nbra] = 0;
+                }
+                for (n = 0; n < nf2; n++)
+                {
+                    cR = coeffR[i * nf2 + n];
+                    cI = coeffI[i * nf2 + n];
+                    if (cR != 0)
+                    {
+                        if (cI != 0)
+                        {
+
+                            for (j = 0; j < nbra; j++)
+                            {
+                                gR = gcartR[j + n * nbra];
+                                gI = gcartI[j + n * nbra];
+                                gspR[j + i * nbra] += cR * gR - cI * gI;
+                                gspI[j + i * nbra] += cI * gR + cR * gI;
+                            }
+                        }
+                        else
+                        {
+
+                            for (j = 0; j < nbra; j++)
+                            {
+                                gR = gcartR[j + n * nbra];
+                                gI = gcartI[j + n * nbra];
+                                gspR[j + i * nbra] += cR * gR;
+                                gspI[j + i * nbra] += cR * gI;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (cI != 0)
+                        {
+
+                            for (j = 0; j < nbra; j++)
+                            {
+                                gR = gcartR[j + n * nbra];
+                                gI = gcartI[j + n * nbra];
+                                gspR[j + i * nbra] += -cI * gI;
+                                gspI[j + i * nbra] += cI * gR;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // with phase "i"
+        static void a_iket_cart2spinor(Span<double> gspR, Span<double> gspI,
+                                       Span<double> gcartR, Span<double> gcartI,
+                                       FINT nbra, FINT kappa, FINT l)
+        {
+            a_ket_cart2spinor(gspI, gspR, gcartR, gcartI, nbra, kappa, l);
+            FINT size = _len_spinor(kappa, l) * nbra;
+            FINT i;
+            for (i = 0; i < size; i++)
+            {
+                gspR[i] = -gspR[i];
+            }
+        }
+
+        static void a_ket1_cart2spinor(Span<double> gspR, Span<double> gspI,
+                                       Span<double> gcartR, Span<double> gcartI,
+                                       FINT nbra, FINT counts, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            FINT nds = nd * nbra;
+            FINT nfs = nf * nbra;
+            FINT chunk_size = nfs * counts;
+            Span<double> gcartaR = gcartR[..chunk_size];
+            Span<double> gcartaI = gcartI[..chunk_size];
+            Span<double> gcartbR = gcartaR[chunk_size..(chunk_size * 2)];
+            Span<double> gcartbI = gcartaI[chunk_size..(chunk_size * 2)];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
+            {
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, k, n;
+            double caR, caI, cbR, cbI, gaR, gaI, gbR, gbI;
+
+            for (i = 0; i < nd; i++)
+            {
+                for (k = 0; k < counts; k++)
+                {
+
+                    for (j = 0; j < nbra; j++)
+                    {
+                        gspR[k * nds + j + i * nbra] = 0;
+                        gspI[k * nds + j + i * nbra] = 0;
+                    }
+                }
+                for (n = 0; n < nf; n++)
+                {
+                    caR = coeffR[i * nf2 + n];
+                    caI = coeffI[i * nf2 + n];
+                    cbR = coeffR[i * nf2 + nf + n];
+                    cbI = coeffI[i * nf2 + nf + n];
+                    for (k = 0; k < counts; k++)
+                    {
+
+                        for (j = 0; j < nbra; j++)
+                        {
+                            gaR = gcartaR[k * nfs + j + n * nbra];
+                            gaI = gcartaI[k * nfs + j + n * nbra];
+                            gbR = gcartbR[k * nfs + j + n * nbra];
+                            gbI = gcartbI[k * nfs + j + n * nbra];
+                            gspR[k * nds + j + i * nbra] += caR * gaR - caI * gaI + cbR * gbR - cbI * gbI;
+                            gspI[k * nds + j + i * nbra] += caR * gaI + caI * gaR + cbR * gbI + cbI * gbR;
+                        }
+                    }
+                }
+            }
+        }
+
+        // with phase "i"
+        static void a_iket1_cart2spinor(Span<double> gspR, Span<double> gspI,
+                                        Span<double> gcartR, Span<double> gcartI,
+                                        FINT nbra, FINT counts, FINT kappa, FINT l)
+        {
+            a_ket1_cart2spinor(gspI, gspR, gcartR, gcartI, nbra, counts, kappa, l);
+            FINT size = _len_spinor(kappa, l) * nbra * counts;
+            FINT i;
+            for (i = 0; i < size; i++)
+            {
+                gspR[i] = -gspR[i];
+            }
+        }
+
+
+        /*************************************************
+         *
+         * transform matrices
+         *
+         *************************************************/
+
+        static void dcopy_ij(Span<double> output, Span<double> gctr,
+                              FINT ni, FINT nj, FINT mi, FINT mj)
+        {
+            FINT i, j;
+
             for (j = 0; j < mj; j++)
             {
-#pragma GCC ivdep
                 for (i = 0; i < mi; i++)
                 {
-                    pijkl[(j * ni + i) * OF_CMPLX] = pgctrR[j * mikl + i];
-                    pijkl[(j * ni + i) * OF_CMPLX + 1] = pgctrI[j * mikl + i];
+                    output[j * ni + i] = gctr[j * mi + i];
                 }
             }
         }
-        fijkl += nijk;
-        gctrR += mik;
-        gctrI += mik;
-    }
-}
 
-internal static void c2s_dset0(double*output, FINT* dims, FINT* counts)
-{
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    size_t nij = ni * nj;
-    size_t nijk = nij * nk;
-    FINT i, j, k, l;
-    if (dims == counts)
-    {
-        for (i = 0; i < nijk * counts[3]; i++)
+        static void zcopy_ij(Span<Complex> output, Span<double> gctrR, Span<double> gctrI,
+                             FINT ni, FINT nj, FINT mi, FINT mj)
         {
-                        output[i] = 0;
-        }
-        return;
-    }
-    FINT di = counts[0];
-    FINT dj = counts[1];
-    FINT dk = counts[2];
-    FINT dl = counts[3];
-    double* pout;
-    for (l = 0; l < dl; l++)
-    {
-        for (k = 0; k < dk; k++)
-        {
-            pout = output +k * nij;
-            for (j = 0; j < dj; j++)
+            Span<double> dout = MemoryMarshal.Cast<Complex, double>(output);
+            FINT i, j;
+
+            for (j = 0; j < mj; j++)
             {
-                for (i = 0; i < di; i++)
+                for (i = 0; i < mi; i++)
                 {
-                    pout[j * ni + i] = 0;
+                    dout[(j * ni + i) * OF_CMPLX] = gctrR[j * mi + i];
+                    dout[(j * ni + i) * OF_CMPLX + 1] = gctrI[j * mi + i];
                 }
             }
         }
-                output += nijk;
-    }
-}
-internal static void c2s_zset0(double complex *output, FINT* dims, FINT* counts)
-{
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    size_t nij = ni * nj;
-    size_t nijk = nij * nk;
-    FINT i, j, k, l;
-    if (dims == counts)
-    {
-        for (i = 0; i < nijk * counts[3]; i++)
+
+        static void dcopy_grids_ij(Span<double> output, Span<double> gctr,
+                                   FINT ngrids, FINT ni, FINT nj,
+                                   FINT mgrids, FINT mi, FINT mj)
         {
-                        output[i] = 0;
-        }
-        return;
-    }
-    FINT di = counts[0];
-    FINT dj = counts[1];
-    FINT dk = counts[2];
-    FINT dl = counts[3];
-    double complex *pout;
-    for (l = 0; l < dl; l++)
-    {
-        for (k = 0; k < dk; k++)
-        {
-            pout = output +k * nij;
-            for (j = 0; j < dj; j++)
+            int ngi = ngrids * ni;
+            int mgi = mgrids * mi;
+            FINT i, j, m;
+
+            for (j = 0; j < mj; j++)
             {
-                for (i = 0; i < di; i++)
+                Span<double> outputi = output.Slice(j * ngi, ngi);
+                Span<double> gctri = gctr.Slice(j * mgi, mgi);
+                for (i = 0; i < mi; i++)
                 {
-                    pout[j * ni + i] = 0;
+                    for (m = 0; m < mgrids; m++)
+                    {
+                        outputi[i * ngrids + m] = gctri[i * mgrids + m];
+                    }
                 }
             }
         }
-                output += nijk;
-    }
-}
 
-internal static void c2s_grids_dset0(double*output, FINT* dims, FINT* counts)
-{
-    FINT counts1[4] = { counts[2], counts[0], counts[1], counts[3] };
-    FINT dims1[4] = { dims[2], dims[0], dims[1], dims[3] };
-    c2s_dset0(output, dims1, counts1);
-}
+        static void zcopy_grids_ij(Span<Complex> output, Span<double> gctrR, Span<double> gctrI,
+                                   FINT ngrids, FINT ni, FINT nj,
+                                   FINT mgrids, FINT mi, FINT mj)
+        {
+            int ngi = ngrids * ni * OF_CMPLX;
+            int mgi = mgrids * mi;
+            Span<double> dout = MemoryMarshal.Cast<Complex, double>(output);
+            FINT i, j, m;
 
-internal static void c2s_grids_zset0(double complex *output, FINT* dims, FINT* counts)
-{
-    FINT counts1[4] = { counts[2], counts[0], counts[1], counts[3] };
-    FINT dims1[4] = { dims[2], dims[0], dims[1], dims[3] };
-    c2s_zset0(output, dims1, counts1);
-}
+            for (j = 0; j < mj; j++)
+            {
+                Span<double> douti = dout.Slice(j * ngi, ngi);
+                Span<double> gctrRi = gctrR.Slice(j * mgi, mgi);
+                Span<double> gctrIi = gctrI.Slice(j * mgi, mgi);
+                for (i = 0; i < mi; i++)
+                {
+                    for (m = 0; m < mgrids; m++)
+                    {
+                        douti[(i * ngrids + m) * OF_CMPLX] = gctrRi[i * mgrids + m];
+                        douti[(i * ngrids + m) * OF_CMPLX + 1] = gctrIi[i * mgrids + m];
+                    }
+                }
+            }
+        }
+
+        /*
+         * gctr(i,k,l,j) . fijkl(i,j,k,l)
+         * fijkl(ic:ic-1+di,jc:jc-1+dj,kc:kc-1+dk,lc:lc-1+dl)
+         * fijkl(ni,nj,nk,nl), gctr(mi,mk,ml,mj)
+         */
+        static void dcopy_iklj(Span<double> fijkl, Span<double> gctr,
+                       FINT ni, FINT nj, FINT nk, FINT nl,
+                       FINT mi, FINT mj, FINT mk, FINT ml)
+        {
+            int nij = ni * nj;
+            int nijk = nij * nk;
+            int mik = mi * mk;
+            int mikl = mik * ml;
+            FINT i, j, k, l;
+            Span<double> pijkl;
+            Span<double> pgctr;
+
+            switch (mi)
+            {
+                case 1:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+                                pijkl[ni * j] = pgctr[mikl * j];
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+                                pijkl[ni * j + 0] = pgctr[mikl * j + 0];
+                                pijkl[ni * j + 1] = pgctr[mikl * j + 1];
+                                pijkl[ni * j + 2] = pgctr[mikl * j + 2];
+                            }
+                        }
+                    }
+                    break;
+                case 5:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+                                pijkl[ni * j + 0] = pgctr[mikl * j + 0];
+                                pijkl[ni * j + 1] = pgctr[mikl * j + 1];
+                                pijkl[ni * j + 2] = pgctr[mikl * j + 2];
+                                pijkl[ni * j + 3] = pgctr[mikl * j + 3];
+                                pijkl[ni * j + 4] = pgctr[mikl * j + 4];
+                            }
+                        }
+                    }
+                    break;
+                case 6:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+                                pijkl[ni * j + 0] = pgctr[mikl * j + 0];
+                                pijkl[ni * j + 1] = pgctr[mikl * j + 1];
+                                pijkl[ni * j + 2] = pgctr[mikl * j + 2];
+                                pijkl[ni * j + 3] = pgctr[mikl * j + 3];
+                                pijkl[ni * j + 4] = pgctr[mikl * j + 4];
+                                pijkl[ni * j + 5] = pgctr[mikl * j + 5];
+                            }
+                        }
+                    }
+                    break;
+                case 7:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+                                pijkl[ni * j + 0] = pgctr[mikl * j + 0];
+                                pijkl[ni * j + 1] = pgctr[mikl * j + 1];
+                                pijkl[ni * j + 2] = pgctr[mikl * j + 2];
+                                pijkl[ni * j + 3] = pgctr[mikl * j + 3];
+                                pijkl[ni * j + 4] = pgctr[mikl * j + 4];
+                                pijkl[ni * j + 5] = pgctr[mikl * j + 5];
+                                pijkl[ni * j + 6] = pgctr[mikl * j + 6];
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    for (l = 0; l < ml; l++)
+                    {
+                        Span<double> fijkli = fijkl.Slice(l * nijk, nijk);
+                        Span<double> gctri = gctr.Slice(l * mik, mik);
+                        for (k = 0; k < mk; k++)
+                        {
+                            pijkl = fijkli.Slice(k * nij, nij);
+                            pgctr = gctri.Slice(k * mi, mi);
+                            for (j = 0; j < mj; j++)
+                            {
+
+                                for (i = 0; i < mi; i++)
+                                {
+                                    pijkl[ni * j + i] = pgctr[mikl * j + i];
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
+        static void zcopy_iklj(Span<Complex> fijkl, Span<double> gctrR, Span<double> gctrI,
+                       FINT ni, FINT nj, FINT nk, FINT nl,
+                       FINT mi, FINT mj, FINT mk, FINT ml)
+        {
+            int nij = ni * nj;
+            int nijk = nij * nk;
+            int mik = mi * mk;
+            int mikl = mik * ml;
+            FINT i, j, k, l;
+            Span<double> pijkl;
+            Span<double> pgctrR, pgctrI;
+
+            for (l = 0; l < ml; l++)
+            {
+                Span<Complex> fijkli =
+                    fijkl.Slice(l * nijk, nijk);
+                Span<double> gctrRi = gctrR.Slice(l * mik, mik);
+                Span<double> gctrIi = gctrI.Slice(l * mik, mik);
+                for (k = 0; k < mk; k++)
+                {
+                    pijkl = MemoryMarshal.Cast<Complex, double>((fijkli.Slice(k * nij, nij)));
+                    pgctrR = gctrRi.Slice(k * mi, mi);
+                    pgctrI = gctrIi.Slice(k * mi, mi);
+                    for (j = 0; j < mj; j++)
+                    {
+
+                        for (i = 0; i < mi; i++)
+                        {
+                            pijkl[(j * ni + i) * OF_CMPLX] = pgctrR[j * mikl + i];
+                            pijkl[(j * ni + i) * OF_CMPLX + 1] = pgctrI[j * mikl + i];
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static void c2s_dset0(Span<double> output, Span<FINT> dims, Span<FINT> counts)
+        {
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            int nij = ni * nj;
+            int nijk = nij * nk;
+            FINT i, j, k, l;
+            if (dims == counts)
+            {
+                for (i = 0; i < nijk * counts[3]; i++)
+                {
+                    output[i] = 0;
+                }
+                return;
+            }
+            FINT di = counts[0];
+            FINT dj = counts[1];
+            FINT dk = counts[2];
+            FINT dl = counts[3];
+            for (l = 0; l < dl; l++)
+            {
+                Span<double> outputl =
+                    output.Slice(l * nijk, nijk);
+                for (k = 0; k < dk; k++)
+                {
+                    Span<double> pout = outputl.Slice(k * nij, nij);
+                    for (j = 0; j < dj; j++)
+                    {
+                        for (i = 0; i < di; i++)
+                        {
+                            pout[j * ni + i] = 0;
+                        }
+                    }
+                }
+            }
+        }
+        internal static void c2s_zset0(Span<Complex> output, Span<FINT> dims, Span<FINT> counts)
+        {
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            int nij = ni * nj;
+            int nijk = nij * nk;
+            FINT i, j, k, l;
+            if (dims == counts)
+            {
+                for (i = 0; i < nijk * counts[3]; i++)
+                {
+                    output[i] = 0;
+                }
+                return;
+            }
+            FINT di = counts[0];
+            FINT dj = counts[1];
+            FINT dk = counts[2];
+            FINT dl = counts[3];
+            Span<Complex> pout;
+            for (l = 0; l < dl; l++)
+            {
+                Span<Complex> outputl =
+                    output.Slice(l * nijk, nijk);
+                for (k = 0; k < dk; k++)
+                {
+                    pout = outputl.Slice(k * nij, nij);
+                    for (j = 0; j < dj; j++)
+                    {
+                        for (i = 0; i < di; i++)
+                        {
+                            pout[j * ni + i] = Complex.Zero;
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static void c2s_grids_dset0(Span<double> output, Span<FINT> dims, Span<FINT> counts)
+        {
+            Span<FINT> counts1 = [ counts[2], counts[0], counts[1], counts[3] ];
+            Span<FINT> dims1 = [dims[2], dims[0], dims[1], dims[3] ];
+            c2s_dset0(output, dims1, counts1);
+        }
+
+        internal static void c2s_grids_zset0(Span<Complex> output, Span<FINT> dims, Span<FINT> counts)
+        {
+            Span<FINT> counts1 = [counts[2], counts[0], counts[1], counts[3] ];
+            Span<FINT> dims1 = [dims[2], dims[0], dims[1], dims[3] ];
+            c2s_zset0(output, dims1, counts1);
+        }
 
 
-/*
- * use f_ket to transform k,l for gctr(i,j,k,l), where
- * sizsph = nbra * (2*l+1)
- * sizcart = nbra * (l*(l+1)/2)
- * and return the pointer to the buffer which holds the transformed gctr
- */
-static double* sph2e_inner(double* gsph, double* gcart,
-                           FINT l, FINT nbra, FINT ncall, FINT sizsph, FINT sizcart)
-{
-    FINT n;
-    switch (l)
-    {
+        /*
+         * use f_ket to transform k,l for gctr(i,j,k,l), where
+         * sizsph = nbra * (2*l+1)
+         * sizcart = nbra * (l*(l+1)/2)
+         * and return the pointer to the buffer which holds the transformed gctr
+         */
+        static Span<double> sph2e_inner(Span<double> gsph, Span<double> gcart,
+                                   FINT l, FINT nbra, FINT ncall, FINT sizsph, FINT sizcart)
+        {
+            FINT n;
+            switch (l)
+            {
 #if PYPZPX
         case 0:
             return gcart;
         case 1:
             for (n = 0; n < ncall; n++)
             {
-                p_ket_cart2spheric(gsph + n * sizsph, gcart + n * sizcart, nbra, nbra, l);
+                p_ket_cart2spheric(gsph.Slice(n * sizsph, sizsph), gcart.Slice(n * sizcart, sizcart), nbra, nbra, l);
             }
             break;
 #else
-        case 0:
-        case 1:
-            return gcart;
+                case 0:
+                case 1:
+                    return gcart;
 #endif
-        case 2:
-            for (n = 0; n < ncall; n++)
-            {
-                d_ket_cart2spheric(gsph + n * sizsph, gcart + n * sizcart, nbra, nbra, l);
+                case 2:
+                    for (n = 0; n < ncall; n++)
+                    {
+                        d_ket_cart2spheric(gsph.Slice(n * sizsph, sizsph), gcart.Slice(n * sizcart, sizcart), nbra, nbra, l);
+                    }
+                    break;
+                case 3:
+                    for (n = 0; n < ncall; n++)
+                    {
+                        f_ket_cart2spheric(gsph.Slice(n * sizsph, sizsph), gcart.Slice(n * sizcart, sizcart), nbra, nbra, l);
+                    }
+                    break;
+                case 4:
+                    for (n = 0; n < ncall; n++)
+                    {
+                        g_ket_cart2spheric(gsph.Slice(n * sizsph, sizsph), gcart.Slice(n * sizcart, sizcart), nbra, nbra, l);
+                    }
+                    break;
+                default:
+                    for (n = 0; n < ncall; n++)
+                    {
+                        a_ket_cart2spheric(gsph.Slice(n * sizsph, sizsph), gcart.Slice(n * sizcart, sizcart), nbra, nbra, l);
+                    }
+                    break;
             }
-            break;
-        case 3:
-            for (n = 0; n < ncall; n++)
+            return gsph;
+        }
+
+
+        /*
+         * 1e integrals, cartesian to real spheric.
+         */
+        static void c2s_sph_1e(Span<double> opij, Span<double> gctr, Span<FINT> dims,
+                        CINTEnvVars envs, Span<double> cache)
+        {
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = i_l * 2 + 1;
+            FINT dj = j_l * 2 + 1;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nf = envs.nf;
+            FINT ic, jc;
+            FINT buflen = nfi * dj;
+            Span<double> buf1, buf2;
+            Misc.MALLOC_INSTACK(ref cache, out buf1, buflen);
+            Misc.MALLOC_INSTACK(ref cache, out buf2, buflen);
+            Span<double> pij;
+            Span<double> tmp1;
+            FINT ctr = 0;
+            for (jc = 0; jc < j_ctr; jc++)
             {
-                f_ket_cart2spheric(gsph + n * sizsph, gcart + n * sizcart, nbra, nbra, l);
-            }
-            break;
-        case 4:
-            for (n = 0; n < ncall; n++)
-            {
-                g_ket_cart2spheric(gsph + n * sizsph, gcart + n * sizcart, nbra, nbra, l);
-            }
-            break;
-        default:
-            for (n = 0; n < ncall; n++)
-            {
-                a_ket_cart2spheric(gsph + n * sizsph, gcart + n * sizcart, nbra, nbra, l);
-            }
-    }
-    return gsph;
-}
-
-
-/*
- * 1e integrals, cartesian to real spheric.
- */
-static void c2s_sph_1e(double* opij, double* gctr, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = i_l * 2 + 1;
-    FINT dj = j_l * 2 + 1;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nf = envs.nf;
-    FINT ic, jc;
-    FINT buflen = nfi * dj;
-    double* buf1, *buf2;
-    MALLOC_INSTACK(buf1, buflen);
-    MALLOC_INSTACK(buf2, buflen);
-    double* pij;
-    double* tmp1;
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
-        {
-            tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfi, nfi, j_l);
-            tmp1 = (c2s_bra_sph[i_l])(buf2, dj, tmp1, i_l);
-            pij = opij + ofj * jc + di * ic;
-            dcopy_ij(pij, tmp1, ni, nj, di, dj);
-            gctr += nf;
-        }
-    }
-}
-
-
-/*
- * 1e integrals, cartesian to spin-free spinor.
- */
-internal static void c2s_sf_1e(Complex[] opij, double[] gctr, FINT[] dims,
-               CINTEnvVars envs, double[] cache)
-{
-    FINT[] shls = envs.shls;
-    Bas[] bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas[i_sh].kappaForSpinor;
-    FINT j_kp = bas[j_sh].kappaForSpinor;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * dj;
-    FINT nfj = envs.nfj;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc;
-    double* tmp1R, tmp1I, tmp2R, tmp2I;
-    MALLOC_INSTACK(tmp1R, di * nf2j);
-    MALLOC_INSTACK(tmp1I, di * nf2j);
-    MALLOC_INSTACK(tmp2R, di * dj);
-    MALLOC_INSTACK(tmp2I, di * dj);
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
-        {
-            a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfj, i_kp, i_l);
-            a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
-            zcopy_ij(opij + ofj * jc + di * ic, tmp2R, tmp2I, ni, nj, di, dj);
-            gctr += nf;
-        }
-    }
-}
-
-static void c2s_sf_1ei(double complex *opij, double* gctr, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * dj;
-    FINT nfj = envs.nfj;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, di * nf2j);
-    MALLOC_INSTACK(tmp1I, di * nf2j);
-    MALLOC_INSTACK(tmp2R, di * dj);
-    MALLOC_INSTACK(tmp2I, di * dj);
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
-        {
-            a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfj, i_kp, i_l);
-            a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
-            zcopy_ij(opij + ofj * jc + di * ic, tmp2R, tmp2I, ni, nj, di, dj);
-            gctr += nf;
-        }
-    }
-}
-
-
-/*
- * 1e integrals, cartesian to spinor.
- */
-static void c2s_si_1e(double complex *opij, double* gctr, FINT* dims,
-               CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, di * nf2j);
-    MALLOC_INSTACK(tmp1I, di * nf2j);
-    MALLOC_INSTACK(tmp2R, di * dj);
-    MALLOC_INSTACK(tmp2I, di * dj);
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
-        {
-            a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfj, i_kp, i_l);
-            a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
-            zcopy_ij(opij + ofj * jc + di * ic, tmp2R, tmp2I, ni, nj, di, dj);
-
-            gc_x += nf;
-            gc_y += nf;
-            gc_z += nf;
-            gc_1 += nf;
-        }
-    }
-}
-static void c2s_si_1ei(double complex *opij, double* gctr, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, di * nf2j);
-    MALLOC_INSTACK(tmp1I, di * nf2j);
-    MALLOC_INSTACK(tmp2R, di * dj);
-    MALLOC_INSTACK(tmp2I, di * dj);
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
-        {
-            a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfj, i_kp, i_l);
-            a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
-            zcopy_ij(opij + ofj * jc + di * ic, tmp2R, tmp2I, ni, nj, di, dj);
-
-            gc_x += nf;
-            gc_y += nf;
-            gc_z += nf;
-            gc_1 += nf;
-        }
-    }
-}
-
-static void c2s_sph_1e_grids(double*output, double* gctr, FINT* dims,
-                      CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = i_l * 2 + 1;
-    FINT dj = j_l * 2 + 1;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nf = envs.nf;
-    FINT ic, jc, grids_offset;
-    FINT bgrids, bgrids_di, bgrids_nfi;
-    FINT buflen = GRID_BLKSIZE * nfi * dj;
-    double* buf1, *buf2;
-    MALLOC_ALIGN8_INSTACK(buf1, buflen);
-    MALLOC_ALIGN8_INSTACK(buf2, buflen);
-    double* pij;
-    double* tmp1;
-
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        bgrids_di = bgrids * di;
-        bgrids_nfi = bgrids * nfi;
-        for (jc = 0; jc < j_ctr; jc++)
-        {
-            for (ic = 0; ic < i_ctr; ic++)
-            {
-                tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, bgrids_nfi, bgrids_nfi, j_l);
-                tmp1 = sph2e_inner(buf2, tmp1, i_l, bgrids, dj, bgrids_di, bgrids_nfi);
-                pij = output +Ng * (ofj * jc + di * ic) + grids_offset;
-                dcopy_grids_ij(pij, tmp1, Ng, ni, nj, bgrids, di, dj);
-                gctr += bgrids * nf;
+                Span<double> opijj = opij.Slice(ofj * jc, ofj);
+                for (ic = 0; ic < i_ctr; ic++)
+                {
+                    Span<double> gctri = gctr.Slice(
+                        ctr * nf, nf);
+                    tmp1 = (c2s_ket_sph[j_l])(buf1, gctri, nfi, nfi, j_l);
+                    tmp1 = (c2s_bra_sph[i_l])(buf2, dj, tmp1, i_l);
+                    pij = opijj.Slice(di * ic, di);
+                    dcopy_ij(pij, tmp1, ni, nj, di, dj);
+                    ctr++;
+                }
             }
         }
-    }
-}
 
-static void c2s_cart_1e_grids(double*output, double* gctr, FINT* dims,
-                       CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf = envs.nf;
-    FINT ofj = ni * nfj;
-    FINT ic, jc, grids_offset;
-    FINT bgrids;
-    double* pij;
 
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        for (jc = 0; jc < j_ctr; jc++)
+        /*
+         * 1e integrals, cartesian to spin-free spinor.
+         */
+        internal static void c2s_sf_1e(Span<Complex> opij, Span<double> gctr, Span<FINT> dims,
+                       CINTEnvVars envs, ref Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT[] shls = envs.shls;
+            Bas[] bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas[i_sh].kappaForSpinor;
+            FINT j_kp = bas[j_sh].kappaForSpinor;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * dj;
+            FINT nfj = envs.nfj;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc;
+            FINT ctr = 0;
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1R, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1I, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2R, di * dj);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2I, di * dj);
+
+            for (jc = 0; jc < j_ctr; jc++)
             {
-                pij = output +Ng * (ofj * jc + nfi * ic) + grids_offset;
-                dcopy_grids_ij(pij, gctr, Ng, ni, nj, bgrids, nfi, nfj);
-                gctr += bgrids * nf;
+                Span<Complex> opijj = opij.Slice(ofj * jc, ofj);
+                for (ic = 0; ic < i_ctr; ic++)
+                {
+                    Span<double> gctri = gctr.Slice(
+                        ctr * nf, nf);
+                    a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfj, i_kp, i_l);
+                    a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
+                    zcopy_ij(opijj.Slice(di * ic, di), tmp2R, tmp2I, ni, nj, di, dj);
+                    ctr++;
+                }
             }
         }
-    }
-}
 
-/*
- * 1e-grids integrals, cartesian to spin-free spinor.
- */
-static void c2s_sf_1e_grids(double complex *output, double* gctr, FINT* dims,
-                     CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc, grids_offset;
-    FINT bgrids, bgrids_di;
-    FINT buflen = GRID_BLKSIZE * di * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
-    double complex *pij;
-
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        bgrids_di = bgrids * di;
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_sf_1ei(Span<Complex> opij, Span<double> gctr, Span<FINT> dims,
+                       CINTEnvVars envs, ref Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT[] shls = envs.shls;
+            Bas[] bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas[i_sh].kappaForSpinor;
+            FINT j_kp = bas[j_sh].kappaForSpinor;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * dj;
+            FINT nfj = envs.nfj;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc;
+            FINT ctr = 0;
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1R, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1I, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2R, di * dj);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2I, di * dj);
+
+            for (jc = 0; jc < j_ctr; jc++)
             {
-                a_bra1_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, bgrids, nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
-                pij = output +Ng * (ofj * jc + di * ic) + grids_offset;
-                zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
-                gctr += bgrids * nf;
+                Span<Complex> opijj = opij.Slice(ofj * jc, ofj);
+                for (ic = 0; ic < i_ctr; ic++)
+                {
+                    Span<double> gctri = gctr.Slice(
+                        ctr * nf, nf);
+                    a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfj, i_kp, i_l);
+                    a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
+                    zcopy_ij(opijj.Slice(di * ic, di), tmp2R, tmp2I, ni, nj, di, dj);
+                    ctr++;
+                }
             }
         }
-    }
-}
-static void c2s_sf_1e_gridsi(double complex *output, double* gctr, FINT* dims,
-                      CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc, grids_offset;
-    FINT bgrids, bgrids_di;
-    FINT buflen = GRID_BLKSIZE * di * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
-    double complex *pij;
 
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        bgrids_di = bgrids * di;
-        for (jc = 0; jc < j_ctr; jc++)
+
+        /*
+         * 1e integrals, cartesian to spinor.
+         */
+        static void c2s_si_1e(Span<Complex> opij, Span<double> gctr, Span<FINT> dims,
+                       CINTEnvVars envs, ref Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT[] shls = envs.shls;
+            Bas[] bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas[i_sh].kappaForSpinor;
+            FINT j_kp = bas[j_sh].kappaForSpinor;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc;
+            FINT chunk_size = nf * i_ctr * j_ctr;
+            Span<double> gc_x = gctr[..chunk_size];
+            Span<double> gc_y = gctr[chunk_size..(chunk_size * 2)];
+            Span<double> gc_z = gctr[(chunk_size * 2)..(chunk_size * 3)];
+            Span<double> gc_1 = gctr[(chunk_size * 3)..(chunk_size * 4)];
+            FINT ctr = 0;
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1R, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1I, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2R, di * dj);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2I, di * dj);
+
+            for (jc = 0; jc < j_ctr; jc++)
             {
-                a_bra1_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, bgrids, nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
-                pij = output +Ng * (ofj * jc + di * ic) + grids_offset;
-                zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
-                gctr += bgrids * nf;
+                Span<Complex> opijj = opij.Slice(ofj * jc, ofj);
+                for (ic = 0; ic < i_ctr; ic++)
+                {
+                    Span<double> gctri = gctr.Slice(
+                        ctr * nf, nf);
+                    a_bra_cart2spinor_si(tmp1R, tmp1I, 
+                        gc_x.Slice(ctr * nf, nf), 
+                        gc_y.Slice(ctr * nf, nf), 
+                        gc_z.Slice(ctr * nf, nf), 
+                        gc_1.Slice(ctr * nf, nf), 
+                        nfj, i_kp, i_l);
+                    a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
+                    zcopy_ij(opijj.Slice(di * ic, di), tmp2R, tmp2I, ni, nj, di, dj);
+                    ctr++;
+                }
             }
         }
-    }
-}
-static void c2s_si_1e_grids(double complex *output, double* gctr, FINT* dims,
-                     CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc, grids_offset;
-    FINT bgrids, bgrids_di, bgrids_nf;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + ngrids * nf * i_ctr * j_ctr;
-    double* gc_z = gc_y + ngrids * nf * i_ctr * j_ctr;
-    double* gc_1 = gc_z + ngrids * nf * i_ctr * j_ctr;
-    FINT buflen = GRID_BLKSIZE * di * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
-    double complex *pij;
-
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        bgrids_di = bgrids * di;
-        bgrids_nf = bgrids * nf;
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_si_1e(Span<Complex> opij, Span<double> gctr, Span<FINT> dims,
+                       CINTEnvVars envs, ref Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT[] shls = envs.shls;
+            Bas[] bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas[i_sh].kappaForSpinor;
+            FINT j_kp = bas[j_sh].kappaForSpinor;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc;
+            FINT chunk_size = nf * i_ctr * j_ctr;
+            Span<double> gc_x = gctr[..chunk_size];
+            Span<double> gc_y = gctr[chunk_size..(chunk_size * 2)];
+            Span<double> gc_z = gctr[(chunk_size * 2)..(chunk_size * 3)];
+            Span<double> gc_1 = gctr[(chunk_size * 3)..(chunk_size * 4)];
+            FINT ctr = 0;
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1R, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp1I, di * nf2j);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2R, di * dj);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> tmp2I, di * dj);
+
+
+            for (jc = 0; jc < j_ctr; jc++)
             {
-                a_bra1_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, bgrids, nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
-                pij = output +Ng * (ofj * jc + di * ic) + grids_offset;
-                zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
-                gc_x += bgrids_nf;
-                gc_y += bgrids_nf;
-                gc_z += bgrids_nf;
-                gc_1 += bgrids_nf;
+                Span<Complex> opijj = opij.Slice(ofj * jc, ofj);
+                for (ic = 0; ic < i_ctr; ic++)
+                {
+                    Span<double> gctri = gctr.Slice(
+                        ctr * nf, nf);
+                    a_bra_cart2spinor_si(tmp1R, tmp1I,
+                        gc_x.Slice(ctr * nf, nf),
+                        gc_y.Slice(ctr * nf, nf),
+                        gc_z.Slice(ctr * nf, nf),
+                        gc_1.Slice(ctr * nf, nf),
+                        nfj, i_kp, i_l);
+                    a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di, j_kp, j_l);
+                    zcopy_ij(opijj.Slice(di * ic, di), tmp2R, tmp2I, ni, nj, di, dj);
+                    ctr++;
+                }
             }
         }
-    }
-}
-static void c2s_si_1e_gridsi(double complex *output, double* gctr, FINT* dims,
-                      CINTEnvVars envs, double* cache)
-{
-    FINT ngrids = envs.ngrids;
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    size_t Ng = dims[2];
-    FINT ofj = ni * dj;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ic, jc, grids_offset;
-    FINT bgrids, bgrids_di, bgrids_nf;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + ngrids * nf * i_ctr * j_ctr;
-    double* gc_z = gc_y + ngrids * nf * i_ctr * j_ctr;
-    double* gc_1 = gc_z + ngrids * nf * i_ctr * j_ctr;
-    FINT buflen = GRID_BLKSIZE * di * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
-    MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
-    double complex *pij;
 
-    for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
-    {
-        bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
-        bgrids_di = bgrids * di;
-        bgrids_nf = bgrids * nf;
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_sph_1e_grids(Span<double> output, Span<double> gctr, Span<FINT> dims,
+                              CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT ngrids = envs.ngrids;
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = i_l * 2 + 1;
+            FINT dj = j_l * 2 + 1;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nf = envs.nf;
+            FINT ic, jc, grids_offset;
+            FINT bgrids, bgrids_di, bgrids_nfi;
+            FINT buflen = GRID_BLKSIZE * nfi * dj;
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> buf1, buflen);
+            Misc.MALLOC_INSTACK(ref cache, out Span<double> buf2, buflen);
+            Span<double> pij;
+            Span<double> tmp1;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
             {
-                a_bra1_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, bgrids, nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
-                pij = output +Ng * (ofj * jc + di * ic) + grids_offset;
-                zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
-                gc_x += bgrids_nf;
-                gc_y += bgrids_nf;
-                gc_z += bgrids_nf;
-                gc_1 += bgrids_nf;
+                bgrids = Math.Min(ngrids - grids_offset, GRID_BLKSIZE);
+                bgrids_di = bgrids * di;
+                bgrids_nfi = bgrids * nfi;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, bgrids_nfi, bgrids_nfi, j_l);
+                        tmp1 = sph2e_inner(buf2, tmp1, i_l, bgrids, dj, bgrids_di, bgrids_nfi);
+                        pij = output + Ng * (ofj * jc + di * ic) + grids_offset;
+                        dcopy_grids_ij(pij, tmp1, Ng, ni, nj, bgrids, di, dj);
+                        gctr += bgrids * nf;
+                    }
+                }
             }
         }
-    }
-}
 
-
-/*
- * 2e integrals, cartesian to real spherical functions.
- *
- * gctr: Cartesian GTO integrals, ordered as <ik|lj>
- */
-static void c2s_sph_2e1(double*output, double* gctr, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT l_l = envs.l_l;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = i_l * 2 + 1;
-    FINT dj = j_l * 2 + 1;
-    FINT dk = k_l * 2 + 1;
-    FINT dl = l_l * 2 + 1;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT nfi = envs.nfi;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nfik = nfi * nfk;
-    FINT nfikl = nfik * nfl;
-    FINT dlj = dl * dj;
-    FINT nf = envs.nf;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ofl = ni * nj * nk * dl;
-    FINT ic, jc, kc, lc;
-    FINT buflen = nfikl * dj;
-    double* buf1;
-    MALLOC_INSTACK(buf1, buflen * 4);
-    double* buf2 = buf1 + buflen;
-    double* buf3 = buf2 + buflen;
-    double* buf4 = buf3 + buflen;
-    double* pout, *tmp1;
-
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
+        static void c2s_cart_1e_grids(Span<double> output, Span<double> gctr, FINT* dims,
+                               CINTEnvVars envs, Span<double> cache)
         {
+            FINT ngrids = envs.ngrids;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf = envs.nf;
+            FINT ofj = ni * nfj;
+            FINT ic, jc, grids_offset;
+            FINT bgrids;
+            Span<double> pij;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
+            {
+                bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pij = output + Ng * (ofj * jc + nfi * ic) + grids_offset;
+                        dcopy_grids_ij(pij, gctr, Ng, ni, nj, bgrids, nfi, nfj);
+                        gctr += bgrids * nf;
+                    }
+                }
+            }
+        }
+
+        /*
+         * 1e-grids integrals, cartesian to spin-free spinor.
+         */
+        static void c2s_sf_1e_grids(Span<Complex> output, Span<double> gctr, FINT* dims,
+                             CINTEnvVars envs, Span<double> cache)
+        {
+            FINT ngrids = envs.ngrids;
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc, grids_offset;
+            FINT bgrids, bgrids_di;
+            FINT buflen = GRID_BLKSIZE * di * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
+            Span<Complex> pij;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
+            {
+                bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                bgrids_di = bgrids * di;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra1_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, bgrids, nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
+                        pij = output + Ng * (ofj * jc + di * ic) + grids_offset;
+                        zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
+                        gctr += bgrids * nf;
+                    }
+                }
+            }
+        }
+        static void c2s_sf_1e_gridsi(Span<Complex> output, Span<double> gctr, FINT* dims,
+                              CINTEnvVars envs, Span<double> cache)
+        {
+            FINT ngrids = envs.ngrids;
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc, grids_offset;
+            FINT bgrids, bgrids_di;
+            FINT buflen = GRID_BLKSIZE * di * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
+            Span<Complex> pij;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
+            {
+                bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                bgrids_di = bgrids * di;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra1_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, bgrids, nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
+                        pij = output + Ng * (ofj * jc + di * ic) + grids_offset;
+                        zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
+                        gctr += bgrids * nf;
+                    }
+                }
+            }
+        }
+        static void c2s_si_1e_grids(Span<Complex> output, Span<double> gctr, FINT* dims,
+                             CINTEnvVars envs, Span<double> cache)
+        {
+            FINT ngrids = envs.ngrids;
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc, grids_offset;
+            FINT bgrids, bgrids_di, bgrids_nf;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + ngrids * nf * i_ctr * j_ctr;
+            Span<double> gc_z = gc_y + ngrids * nf * i_ctr * j_ctr;
+            Span<double> gc_1 = gc_z + ngrids * nf * i_ctr * j_ctr;
+            FINT buflen = GRID_BLKSIZE * di * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
+            Span<Complex> pij;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
+            {
+                bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                bgrids_di = bgrids * di;
+                bgrids_nf = bgrids * nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra1_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, bgrids, nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
+                        pij = output + Ng * (ofj * jc + di * ic) + grids_offset;
+                        zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
+                        gc_x += bgrids_nf;
+                        gc_y += bgrids_nf;
+                        gc_z += bgrids_nf;
+                        gc_1 += bgrids_nf;
+                    }
+                }
+            }
+        }
+        static void c2s_si_1e_gridsi(Span<Complex> output, Span<double> gctr, FINT* dims,
+                              CINTEnvVars envs, Span<double> cache)
+        {
+            FINT ngrids = envs.ngrids;
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            int Ng = dims[2];
+            FINT ofj = ni * dj;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ic, jc, grids_offset;
+            FINT bgrids, bgrids_di, bgrids_nf;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + ngrids * nf * i_ctr * j_ctr;
+            Span<double> gc_z = gc_y + ngrids * nf * i_ctr * j_ctr;
+            Span<double> gc_1 = gc_z + ngrids * nf * i_ctr * j_ctr;
+            FINT buflen = GRID_BLKSIZE * di * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_ALIGN8_INSTACK(tmp1R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp1I, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2R, buflen);
+            MALLOC_ALIGN8_INSTACK(tmp2I, buflen);
+            Span<Complex> pij;
+
+            for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE)
+            {
+                bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                bgrids_di = bgrids * di;
+                bgrids_nf = bgrids * nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra1_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, bgrids, nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, bgrids_di, j_kp, j_l);
+                        pij = output + Ng * (ofj * jc + di * ic) + grids_offset;
+                        zcopy_grids_ij(pij, tmp2R, tmp2I, Ng, ni, nj, bgrids, di, dj);
+                        gc_x += bgrids_nf;
+                        gc_y += bgrids_nf;
+                        gc_z += bgrids_nf;
+                        gc_1 += bgrids_nf;
+                    }
+                }
+            }
+        }
+
+
+        /*
+         * 2e integrals, cartesian to real spherical functions.
+         *
+         * gctr: Cartesian GTO integrals, ordered as <ik|lj>
+         */
+        static void c2s_sph_2e1(Span<double> output, Span<double> gctr, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT l_l = envs.l_l;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = i_l * 2 + 1;
+            FINT dj = j_l * 2 + 1;
+            FINT dk = k_l * 2 + 1;
+            FINT dl = l_l * 2 + 1;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT nfi = envs.nfi;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nfik = nfi * nfk;
+            FINT nfikl = nfik * nfl;
+            FINT dlj = dl * dj;
+            FINT nf = envs.nf;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ofl = ni * nj * nk * dl;
+            FINT ic, jc, kc, lc;
+            FINT buflen = nfikl * dj;
+            Span<double> buf1;
+            MALLOC_INSTACK(buf1, buflen * 4);
+            Span<double> buf2 = buf1 + buflen;
+            Span<double> buf3 = buf2 + buflen;
+            Span<double> buf4 = buf3 + buflen;
+            Span<double> pout, tmp1;
+
+            for (lc = 0; lc < l_ctr; lc++)
+            {
+                for (kc = 0; kc < k_ctr; kc++)
+                {
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfikl, nfikl, j_l);
+                            tmp1 = sph2e_inner(buf2, tmp1, l_l, nfik, dj, nfik * dl, nfikl);
+                            tmp1 = sph2e_inner(buf3, tmp1, k_l, nfi, dlj, nfi * dk, nfik);
+
+                            tmp1 = (c2s_bra_sph[i_l])(buf4, dk * dlj, tmp1, i_l);
+
+                            pout = output + ofl * lc + ofk * kc + ofj * jc + di * ic;
+                            dcopy_iklj(pout, tmp1, ni, nj, nk, nl, di, dj, dk, dl);
+                            gctr += nf;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /*
+         * 2e integrals, cartesian to spin-free spinor for electron 1.
+         *
+         * gctr: Cartesian GTO integrals, ordered as <ik|lj>
+         * opij: partially transformed GTO integrals, ordered as <ik|lj>
+         */
+        static void c2s_sf_2e1(Span<double> opij, Span<double> gctr, FINT* dims,
+                        CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT no = di * nfk * nfl * dj;
+            FINT d_i = di * nfk * nfl;
+            FINT d_j = nfk * nfl * nfj;
+            FINT i;
+            FINT buflen = di * nfk * nfl * nf2j;
+            Span<double> tmp1R, tmp1I;
+            MALLOC_INSTACK(tmp1R, buflen);
+            MALLOC_INSTACK(tmp1I, buflen);
+
+            for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
+            {
+                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, d_j, i_kp, i_l);
+                a_ket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
+                gctr += nf;
+                opij += no * OF_CMPLX;
+            }
+        }
+
+        static void c2s_sf_2e1i(Span<double> opij, Span<double> gctr, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT no = di * nfk * nfl * dj;
+            FINT d_i = di * nfk * nfl;
+            FINT d_j = nfk * nfl * nfj;
+            FINT i;
+            FINT len1 = di * nfk * nfl * nf2j;
+            Span<double> tmp1R, tmp1I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+
+            for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
+            {
+                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, d_j, i_kp, i_l);
+                a_iket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
+                gctr += nf;
+                opij += no * OF_CMPLX;
+            }
+        }
+
+
+        /*
+         * 2e integrals, cartesian to spin-free spinor for electron 2.
+         *
+         * opij: partial transformed GTO integrals, ordered as <ik|lj>
+         */
+        static void c2s_sf_2e2(Span<Complex> fijkl, Span<double> opij, FINT* dims,
+                        CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT k_sh = shls[2];
+            FINT l_sh = shls[3];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT l_l = envs.l_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT k_kp = bas(KAPPA_OF, k_sh);
+            FINT l_kp = bas(KAPPA_OF, l_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = _len_spinor(k_kp, k_l);
+            FINT dl = _len_spinor(l_kp, l_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2k = nfk + nfk;
+            FINT nf2l = nfl + nfl;
+            FINT nop = di * nfk * nfl * dj;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ofl = ni * nj * nk * dl;
+            FINT ic, jc, kc, lc;
+            FINT len1 = di * dk * nf2l * dj;
+            FINT len2 = di * dk * dl * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pfijkl;
+
+            for (lc = 0; lc < l_ctr; lc++)
+            {
+                for (kc = 0; kc < k_ctr; kc++)
+                {
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            a_bra1_cart2spinor_zf(tmp1R, tmp1I, null, null, null, opij, di, nfl * dj, k_kp, k_l);
+                            a_ket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
+                            pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
+                            zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
+                            opij += nop * OF_CMPLX;
+                        }
+                    }
+                }
+            }
+        }
+        static void c2s_sf_2e2i(Span<Complex> fijkl, Span<double> opij, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT k_sh = shls[2];
+            FINT l_sh = shls[3];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT l_l = envs.l_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT k_kp = bas(KAPPA_OF, k_sh);
+            FINT l_kp = bas(KAPPA_OF, l_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = _len_spinor(k_kp, k_l);
+            FINT dl = _len_spinor(l_kp, l_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2k = nfk + nfk;
+            FINT nf2l = nfl + nfl;
+            FINT nop = di * nfk * nfl * dj;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ofl = ni * nj * nk * dl;
+            FINT ic, jc, kc, lc;
+            FINT len2 = di * dk * dl * dj;
+            FINT len1 = di * dk * nf2l * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pfijkl;
+
+            for (lc = 0; lc < l_ctr; lc++)
+            {
+                for (kc = 0; kc < k_ctr; kc++)
+                {
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            a_bra1_cart2spinor_zf(tmp1R, tmp1I, null, null, null, opij, di, nfl * dj, k_kp, k_l);
+                            a_iket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
+                            pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
+                            zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
+                            opij += nop * OF_CMPLX;
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+         * 2e integrals, cartesian to spinor for electron 1.
+         *
+         * gctr: Cartesian GTO integrals, ordered as <ik|lj>
+         * opij: partial transformed GTO integrals, ordered as <ik|lj>
+         */
+        static void c2s_si_2e1(Span<double> opij, Span<double> gctr, FINT* dims,
+                        CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT no = di * nfk * nfl * dj;
+            FINT d_i = di * nfk * nfl;
+            FINT d_j = nfk * nfl * nfj;
+            FINT i;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            FINT len1 = di * nfk * nfl * nf2j;
+            Span<double> tmp1R, tmp1I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+
+            for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
+            {
+                a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, d_j, i_kp, i_l);
+                a_ket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
+                gc_x += nf;
+                gc_y += nf;
+                gc_z += nf;
+                gc_1 += nf;
+                opij += no * OF_CMPLX;
+            }
+        }
+        static void c2s_si_2e1i(Span<double> opij, Span<double> gctr, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT no = di * nfk * nfl * dj;
+            FINT d_i = di * nfk * nfl;
+            FINT d_j = nfk * nfl * nfj;
+            FINT i;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr * l_ctr;
+            FINT len1 = di * nfk * nfl * nf2j;
+            Span<double> tmp1R, tmp1I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+
+            for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
+            {
+                a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, d_j, i_kp, i_l);
+                a_iket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
+                gc_x += nf;
+                gc_y += nf;
+                gc_z += nf;
+                gc_1 += nf;
+                opij += no * OF_CMPLX;
+            }
+        }
+
+        static void c2s_si_2e2(Span<Complex> fijkl, Span<double> opij, FINT* dims,
+                        CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT k_sh = shls[2];
+            FINT l_sh = shls[3];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT l_l = envs.l_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT k_kp = bas(KAPPA_OF, k_sh);
+            FINT l_kp = bas(KAPPA_OF, l_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = _len_spinor(k_kp, k_l);
+            FINT dl = _len_spinor(l_kp, l_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2k = nfk + nfk;
+            FINT nf2l = nfl + nfl;
+            FINT nop = di * nfk * nfl * dj;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ofl = ni * nj * nk * dl;
+            FINT ic, jc, kc, lc;
+            Span<Complex> pfijkl;
+            Span<double> ox = opij;
+            Span<double> oy = ox + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> oz = oy + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> o1 = oz + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            FINT buflen = di * dk * nf2l * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, buflen);
+            MALLOC_INSTACK(tmp1I, buflen);
+            MALLOC_INSTACK(tmp2R, buflen);
+            MALLOC_INSTACK(tmp2I, buflen);
+
+            for (lc = 0; lc < l_ctr; lc++)
+            {
+                for (kc = 0; kc < k_ctr; kc++)
+                {
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            a_bra1_cart2spinor_zi(tmp1R, tmp1I, ox, oy, oz, o1, di, nfl * dj, k_kp, k_l);
+                            a_ket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
+                            pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
+                            zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
+                            ox += nop * OF_CMPLX;
+                            oy += nop * OF_CMPLX;
+                            oz += nop * OF_CMPLX;
+                            o1 += nop * OF_CMPLX;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void c2s_si_2e2i(Span<Complex> fijkl, Span<double> opij, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT k_sh = shls[2];
+            FINT l_sh = shls[3];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT l_l = envs.l_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT k_kp = bas(KAPPA_OF, k_sh);
+            FINT l_kp = bas(KAPPA_OF, l_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = _len_spinor(k_kp, k_l);
+            FINT dl = _len_spinor(l_kp, l_l);
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf2k = nfk + nfk;
+            FINT nf2l = nfl + nfl;
+            FINT nop = di * nfk * nfl * dj;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ofl = ni * nj * nk * dl;
+            FINT ic, jc, kc, lc;
+            Span<Complex> pfijkl;
+            Span<double> ox = opij;
+            Span<double> oy = ox + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> oz = oy + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            Span<double> o1 = oz + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
+            FINT buflen = di * dk * nf2l * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp2R, buflen);
+            MALLOC_INSTACK(tmp2I, buflen);
+            MALLOC_INSTACK(tmp1R, buflen);
+            MALLOC_INSTACK(tmp1I, buflen);
+
+            for (lc = 0; lc < l_ctr; lc++)
+            {
+                for (kc = 0; kc < k_ctr; kc++)
+                {
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            a_bra1_cart2spinor_zi(tmp1R, tmp1I, ox, oy, oz, o1, di, nfl * dj, k_kp, k_l);
+                            a_iket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
+                            pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
+                            zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
+                            ox += nop * OF_CMPLX;
+                            oy += nop * OF_CMPLX;
+                            oz += nop * OF_CMPLX;
+                            o1 += nop * OF_CMPLX;
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+         * 1e integrals, reorder cartesian integrals.
+         */
+        static void c2s_cart_1e(Span<double> opij, Span<double> gctr, FINT* dims,
+                         CINTEnvVars envs, Span<double> cache)
+        {
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nf = envs.nf;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT ofj = ni * nfj;
+            FINT ic, jc;
+            Span<double> popij;
+
             for (jc = 0; jc < j_ctr; jc++)
             {
                 for (ic = 0; ic < i_ctr; ic++)
                 {
-                    tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfikl, nfikl, j_l);
-                    tmp1 = sph2e_inner(buf2, tmp1, l_l, nfik, dj, nfik * dl, nfikl);
-                    tmp1 = sph2e_inner(buf3, tmp1, k_l, nfi, dlj, nfi * dk, nfik);
-
-                    tmp1 = (c2s_bra_sph[i_l])(buf4, dk * dlj, tmp1, i_l);
-
-                    pout = output +ofl * lc + ofk * kc + ofj * jc + di * ic;
-                    dcopy_iklj(pout, tmp1, ni, nj, nk, nl, di, dj, dk, dl);
+                    popij = opij + ofj * jc + nfi * ic;
+                    dcopy_ij(popij, gctr, ni, nj, nfi, nfj);
                     gctr += nf;
                 }
             }
         }
-    }
-}
 
-
-/*
- * 2e integrals, cartesian to spin-free spinor for electron 1.
- *
- * gctr: Cartesian GTO integrals, ordered as <ik|lj>
- * opij: partially transformed GTO integrals, ordered as <ik|lj>
- */
-static void c2s_sf_2e1(double* opij, double* gctr, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT no = di * nfk * nfl * dj;
-    FINT d_i = di * nfk * nfl;
-    FINT d_j = nfk * nfl * nfj;
-    FINT i;
-    FINT buflen = di * nfk * nfl * nf2j;
-    double* tmp1R, *tmp1I;
-    MALLOC_INSTACK(tmp1R, buflen);
-    MALLOC_INSTACK(tmp1I, buflen);
-
-    for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
-    {
-        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, d_j, i_kp, i_l);
-        a_ket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
-        gctr += nf;
-        opij += no * OF_CMPLX;
-    }
-}
-
-static void c2s_sf_2e1i(double* opij, double* gctr, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT no = di * nfk * nfl * dj;
-    FINT d_i = di * nfk * nfl;
-    FINT d_j = nfk * nfl * nfj;
-    FINT i;
-    FINT len1 = di * nfk * nfl * nf2j;
-    double* tmp1R, *tmp1I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-
-    for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
-    {
-        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, d_j, i_kp, i_l);
-        a_iket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
-        gctr += nf;
-        opij += no * OF_CMPLX;
-    }
-}
-
-
-/*
- * 2e integrals, cartesian to spin-free spinor for electron 2.
- *
- * opij: partial transformed GTO integrals, ordered as <ik|lj>
- */
-static void c2s_sf_2e2(double complex *fijkl, double* opij, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT k_sh = shls[2];
-    FINT l_sh = shls[3];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT l_l = envs.l_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT k_kp = bas(KAPPA_OF, k_sh);
-    FINT l_kp = bas(KAPPA_OF, l_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = _len_spinor(k_kp, k_l);
-    FINT dl = _len_spinor(l_kp, l_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2k = nfk + nfk;
-    FINT nf2l = nfl + nfl;
-    FINT nop = di * nfk * nfl * dj;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ofl = ni * nj * nk * dl;
-    FINT ic, jc, kc, lc;
-    FINT len1 = di * dk * nf2l * dj;
-    FINT len2 = di * dk * dl * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pfijkl;
-
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
+        /*
+         * 2e integrals, reorder cartesian integrals.
+         */
+        static void c2s_cart_2e1(Span<double> fijkl, Span<double> gctr, FINT* dims, CINTEnvVars envs,
+                          Span<double> cache)
         {
-            for (jc = 0; jc < j_ctr; jc++)
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT l_ctr = envs.x_ctr[3];
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nfl = envs.nfl;
+            FINT nf = envs.nf;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nl = dims[3];
+            FINT ofj = ni * nfj;
+            FINT ofk = ni * nj * nfk;
+            FINT ofl = ni * nj * nk * nfl;
+            FINT ic, jc, kc, lc;
+            Span<double> pfijkl;
+
+            for (lc = 0; lc < l_ctr; lc++)
             {
-                for (ic = 0; ic < i_ctr; ic++)
+                for (kc = 0; kc < k_ctr; kc++)
                 {
-                    a_bra1_cart2spinor_zf(tmp1R, tmp1I, null, null, null, opij, di, nfl * dj, k_kp, k_l);
-                    a_ket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
-                    pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
-                    zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
-                    opij += nop * OF_CMPLX;
+                    for (jc = 0; jc < j_ctr; jc++)
+                    {
+                        for (ic = 0; ic < i_ctr; ic++)
+                        {
+                            pfijkl = fijkl + ofl * lc + ofk * kc + ofj * jc + nfi * ic;
+                            dcopy_iklj(pfijkl, gctr, ni, nj, nk, nl, nfi, nfj, nfk, nfl);
+                            gctr += nf;
+                        }
+                    }
                 }
             }
         }
-    }
-}
-static void c2s_sf_2e2i(double complex *fijkl, double* opij, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT k_sh = shls[2];
-    FINT l_sh = shls[3];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT l_l = envs.l_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT k_kp = bas(KAPPA_OF, k_sh);
-    FINT l_kp = bas(KAPPA_OF, l_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = _len_spinor(k_kp, k_l);
-    FINT dl = _len_spinor(l_kp, l_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2k = nfk + nfk;
-    FINT nf2l = nfl + nfl;
-    FINT nop = di * nfk * nfl * dj;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ofl = ni * nj * nk * dl;
-    FINT ic, jc, kc, lc;
-    FINT len2 = di * dk * dl * dj;
-    FINT len1 = di * dk * nf2l * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pfijkl;
+        static void c2s_cart_2e2() { }
 
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
+
+        /*************************************************
+         *
+         * 3-center 2-electron integral transformation
+         *
+         *************************************************/
+        static void c2s_sph_3c2e1(Span<double> bufijk, Span<double> gctr, FINT* dims,
+                           CINTEnvVars envs, Span<double> cache)
         {
-            for (jc = 0; jc < j_ctr; jc++)
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = i_l * 2 + 1;
+            FINT dj = j_l * 2 + 1;
+            FINT dk = k_l * 2 + 1;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nfi = envs.nfi;
+            FINT nfk = envs.nfk;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ic, jc, kc;
+            FINT buflen = nfi * nfk * dj;
+            Span<double> buf1;
+            MALLOC_INSTACK(buf1, buflen * 3);
+            Span<double> buf2 = buf1 + buflen;
+            Span<double> buf3 = buf2 + buflen;
+            Span<double> pijk;
+            Span<double> tmp1;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                for (ic = 0; ic < i_ctr; ic++)
+                for (jc = 0; jc < j_ctr; jc++)
                 {
-                    a_bra1_cart2spinor_zf(tmp1R, tmp1I, null, null, null, opij, di, nfl * dj, k_kp, k_l);
-                    a_iket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
-                    pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
-                    zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
-                    opij += nop * OF_CMPLX;
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfik, nfik, j_l);
+                        tmp1 = sph2e_inner(buf2, tmp1, k_l, nfi, dj, nfi * dk, nfik);
+                        tmp1 = (c2s_bra_sph[i_l])(buf3, dk * dj, tmp1, i_l);
+                        pijk = bufijk + ofk * kc + ofj * jc + di * ic;
+                        dcopy_iklj(pijk, tmp1, ni, nj, nk, 1, di, dj, dk, 1);
+                        gctr += nf;
+                    }
                 }
             }
         }
-    }
-}
 
-/*
- * 2e integrals, cartesian to spinor for electron 1.
- *
- * gctr: Cartesian GTO integrals, ordered as <ik|lj>
- * opij: partial transformed GTO integrals, ordered as <ik|lj>
- */
-static void c2s_si_2e1(double* opij, double* gctr, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT no = di * nfk * nfl * dj;
-    FINT d_i = di * nfk * nfl;
-    FINT d_j = nfk * nfl * nfj;
-    FINT i;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    FINT len1 = di * nfk * nfl * nf2j;
-    double* tmp1R, *tmp1I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-
-    for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
-    {
-        a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, d_j, i_kp, i_l);
-        a_ket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
-        gc_x += nf;
-        gc_y += nf;
-        gc_z += nf;
-        gc_1 += nf;
-        opij += no * OF_CMPLX;
-    }
-}
-static void c2s_si_2e1i(double* opij, double* gctr, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT no = di * nfk * nfl * dj;
-    FINT d_i = di * nfk * nfl;
-    FINT d_j = nfk * nfl * nfj;
-    FINT i;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr * l_ctr;
-    FINT len1 = di * nfk * nfl * nf2j;
-    double* tmp1R, *tmp1I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-
-    for (i = 0; i < i_ctr * j_ctr * k_ctr * l_ctr; i++)
-    {
-        a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, d_j, i_kp, i_l);
-        a_iket_cart2spinor(opij, opij + no, tmp1R, tmp1I, d_i, j_kp, j_l);
-        gc_x += nf;
-        gc_y += nf;
-        gc_z += nf;
-        gc_1 += nf;
-        opij += no * OF_CMPLX;
-    }
-}
-
-static void c2s_si_2e2(double complex *fijkl, double* opij, FINT* dims,
-                CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT k_sh = shls[2];
-    FINT l_sh = shls[3];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT l_l = envs.l_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT k_kp = bas(KAPPA_OF, k_sh);
-    FINT l_kp = bas(KAPPA_OF, l_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = _len_spinor(k_kp, k_l);
-    FINT dl = _len_spinor(l_kp, l_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2k = nfk + nfk;
-    FINT nf2l = nfl + nfl;
-    FINT nop = di * nfk * nfl * dj;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ofl = ni * nj * nk * dl;
-    FINT ic, jc, kc, lc;
-    double complex *pfijkl;
-    double* ox = opij;
-    double* oy = ox + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* oz = oy + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* o1 = oz + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    FINT buflen = di * dk * nf2l * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, buflen);
-    MALLOC_INSTACK(tmp1I, buflen);
-    MALLOC_INSTACK(tmp2R, buflen);
-    MALLOC_INSTACK(tmp2I, buflen);
-
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
+        static void c2s_cart_3c2e1(Span<double> bufijk, Span<double> gctr, FINT* dims,
+                            CINTEnvVars envs, Span<double> cache)
         {
-            for (jc = 0; jc < j_ctr; jc++)
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT nf = envs.nf;
+            FINT ofj = ni * nfj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            Span<double> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                for (ic = 0; ic < i_ctr; ic++)
+                for (jc = 0; jc < j_ctr; jc++)
                 {
-                    a_bra1_cart2spinor_zi(tmp1R, tmp1I, ox, oy, oz, o1, di, nfl * dj, k_kp, k_l);
-                    a_ket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
-                    pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
-                    zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
-                    ox += nop * OF_CMPLX;
-                    oy += nop * OF_CMPLX;
-                    oz += nop * OF_CMPLX;
-                    o1 += nop * OF_CMPLX;
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pijk = bufijk + ofk * kc + ofj * jc + nfi * ic;
+                        dcopy_iklj(pijk, gctr, ni, nj, nk, 1, nfi, nfj, nfk, 1);
+                        gctr += nf;
+                    }
                 }
             }
         }
-    }
-}
 
-static void c2s_si_2e2i(double complex *fijkl, double* opij, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT k_sh = shls[2];
-    FINT l_sh = shls[3];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT l_l = envs.l_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT k_kp = bas(KAPPA_OF, k_sh);
-    FINT l_kp = bas(KAPPA_OF, l_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = _len_spinor(k_kp, k_l);
-    FINT dl = _len_spinor(l_kp, l_l);
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf2k = nfk + nfk;
-    FINT nf2l = nfl + nfl;
-    FINT nop = di * nfk * nfl * dj;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ofl = ni * nj * nk * dl;
-    FINT ic, jc, kc, lc;
-    double complex *pfijkl;
-    double* ox = opij;
-    double* oy = ox + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* oz = oy + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    double* o1 = oz + nop * OF_CMPLX * i_ctr * j_ctr * k_ctr * l_ctr;
-    FINT buflen = di * dk * nf2l * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp2R, buflen);
-    MALLOC_INSTACK(tmp2I, buflen);
-    MALLOC_INSTACK(tmp1R, buflen);
-    MALLOC_INSTACK(tmp1I, buflen);
-
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
+        /*
+         * ssc ~ (spheric,spheric|cartesian)
+         */
+        static void c2s_sph_3c2e1_ssc(Span<double> bufijk, Span<double> gctr, FINT* dims,
+                               CINTEnvVars envs, Span<double> cache)
         {
-            for (jc = 0; jc < j_ctr; jc++)
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = i_l * 2 + 1;
+            FINT dj = j_l * 2 + 1;
+            FINT nfi = envs.nfi;
+            FINT nfk = envs.nfk;
+            FINT ni = di * i_ctr;
+            FINT nj = dj * j_ctr;
+            FINT nk = nfk * k_ctr;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            FINT buflen = nfi * nfk * dj;
+            Span<double> buf1, buf2;
+            MALLOC_INSTACK(buf1, buflen);
+            MALLOC_INSTACK(buf2, buflen);
+            Span<double> pijk;
+            Span<double> tmp1;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                for (ic = 0; ic < i_ctr; ic++)
+                for (jc = 0; jc < j_ctr; jc++)
                 {
-                    a_bra1_cart2spinor_zi(tmp1R, tmp1I, ox, oy, oz, o1, di, nfl * dj, k_kp, k_l);
-                    a_iket1_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, dj, l_kp, l_l);
-                    pfijkl = fijkl + (ofl * lc + ofk * kc + ofj * jc + di * ic);
-                    zcopy_iklj(pfijkl, tmp2R, tmp2I, ni, nj, nk, nl, di, dj, dk, dl);
-                    ox += nop * OF_CMPLX;
-                    oy += nop * OF_CMPLX;
-                    oz += nop * OF_CMPLX;
-                    o1 += nop * OF_CMPLX;
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfik, nfik, j_l);
+                        tmp1 = (c2s_bra_sph[i_l])(buf2, nfk * dj, tmp1, i_l);
+                        pijk = bufijk + ofk * kc + ofj * jc + nfi * ic;
+                        dcopy_iklj(pijk, tmp1, ni, nj, nk, 1, di, dj, nfk, 1);
+                        gctr += nf;
+                    }
                 }
             }
         }
-    }
-}
 
-/*
- * 1e integrals, reorder cartesian integrals.
- */
-static void c2s_cart_1e(double* opij, double* gctr, FINT* dims,
-                 CINTEnvVars envs, double* cache)
-{
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nf = envs.nf;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT ofj = ni * nfj;
-    FINT ic, jc;
-    double* popij;
-
-    for (jc = 0; jc < j_ctr; jc++)
-    {
-        for (ic = 0; ic < i_ctr; ic++)
+        /*
+         * 3c2e spinor integrals, cartesian to spin-free spinor for electron 1.
+         */
+        static void c2s_sf_3c2e1(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                          CINTEnvVars envs, Span<double> cache)
         {
-            popij = opij + ofj * jc + nfi * ic;
-            dcopy_ij(popij, gctr, ni, nj, nfi, nfj);
-            gctr += nf;
-        }
-    }
-}
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = k_l * 2 + 1;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ic, jc, kc;
+            FINT buflen = nfi * dk * nfj;
+            Span<double> buf, pbuf;
+            MALLOC_INSTACK(buf, buflen);
+            FINT len1 = di * dk * nf2j;
+            FINT len2 = di * dk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
 
-/*
- * 2e integrals, reorder cartesian integrals.
- */
-static void c2s_cart_2e1(double* fijkl, double* gctr, FINT* dims, CINTEnvVars envs,
-                  double* cache)
-{
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT l_ctr = envs.x_ctr[3];
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nfl = envs.nfl;
-    FINT nf = envs.nf;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nl = dims[3];
-    FINT ofj = ni * nfj;
-    FINT ofk = ni * nj * nfk;
-    FINT ofl = ni * nj * nk * nfl;
-    FINT ic, jc, kc, lc;
-    double* pfijkl;
-
-    for (lc = 0; lc < l_ctr; lc++)
-    {
-        for (kc = 0; kc < k_ctr; kc++)
-        {
-            for (jc = 0; jc < j_ctr; jc++)
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                for (ic = 0; ic < i_ctr; ic++)
+                for (jc = 0; jc < j_ctr; jc++)
                 {
-                    pfijkl = fijkl + ofl * lc + ofk * kc + ofj * jc + nfi * ic;
-                    dcopy_iklj(pfijkl, gctr, ni, nj, nk, nl, nfi, nfj, nfk, nfl);
-                    gctr += nf;
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pbuf = sph2e_inner(buf, gctr, k_l, nfi, nfj, nfi * dk, nfik);
+                        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, pbuf, dk * nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
+                        gctr += nf;
+                    }
                 }
             }
         }
-    }
-}
-static void c2s_cart_2e2() { };
-
-
-/*************************************************
- *
- * 3-center 2-electron integral transformation
- *
- *************************************************/
-static void c2s_sph_3c2e1(double* bufijk, double* gctr, FINT* dims,
-                   CINTEnvVars envs, double* cache)
-{
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = i_l * 2 + 1;
-    FINT dj = j_l * 2 + 1;
-    FINT dk = k_l * 2 + 1;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nfi = envs.nfi;
-    FINT nfk = envs.nfk;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ic, jc, kc;
-    FINT buflen = nfi * nfk * dj;
-    double* buf1;
-    MALLOC_INSTACK(buf1, buflen * 3);
-    double* buf2 = buf1 + buflen;
-    double* buf3 = buf2 + buflen;
-    double* pijk;
-    double* tmp1;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_sf_3c2e1i(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                           CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = k_l * 2 + 1;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT d_i = di * dk;
+            FINT d_j = dk * nfj;
+            FINT ic, jc, kc;
+            FINT buflen = nfi * dk * nfj;
+            Span<double> buf, pbuf;
+            MALLOC_INSTACK(buf, buflen);
+            FINT len1 = di * dk * nf2j;
+            FINT len2 = di * dk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfik, nfik, j_l);
-                tmp1 = sph2e_inner(buf2, tmp1, k_l, nfi, dj, nfi * dk, nfik);
-                tmp1 = (c2s_bra_sph[i_l])(buf3, dk * dj, tmp1, i_l);
-                pijk = bufijk + ofk * kc + ofj * jc + di * ic;
-                dcopy_iklj(pijk, tmp1, ni, nj, nk, 1, di, dj, dk, 1);
-                gctr += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pbuf = sph2e_inner(buf, gctr, k_l, nfi, nfj, nfi * dk, nfik);
+                        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, pbuf, dk * nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
+                        gctr += nf;
+                    }
+                }
             }
         }
-    }
-}
-
-static void c2s_cart_3c2e1(double* bufijk, double* gctr, FINT* dims,
-                    CINTEnvVars envs, double* cache)
-{
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT nf = envs.nf;
-    FINT ofj = ni * nfj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    double* pijk;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        /*
+         * 3c2e integrals, cartesian to spinor for electron 1.
+         */
+        static void c2s_si_3c2e1(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                          CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = k_l * 2 + 1;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT nfijdk = nfi * nfj * dk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT d_i = di * dk;
+            FINT d_j = dk * nf2j;
+            FINT ic, jc, kc;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
+            FINT buflen = nfi * dk * nfj;
+            Span<double> bufx;
+            MALLOC_INSTACK(bufx, buflen * 4);
+            Span<double> bufy = bufx + buflen;
+            Span<double> bufz = bufy + buflen;
+            Span<double> buf1 = bufz + buflen;
+            Span<double> pgx, pgy, pgz, pg1;
+            FINT len1 = di * dk * nf2j;
+            FINT len2 = di * dk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                pijk = bufijk + ofk * kc + ofj * jc + nfi * ic;
-                dcopy_iklj(pijk, gctr, ni, nj, nk, 1, nfi, nfj, nfk, 1);
-                gctr += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pgx = sph2e_inner(bufx, gc_x, k_l, nfi, nfj, nfi * dk, nfik);
+                        pgy = sph2e_inner(bufy, gc_y, k_l, nfi, nfj, nfi * dk, nfik);
+                        pgz = sph2e_inner(bufz, gc_z, k_l, nfi, nfj, nfi * dk, nfik);
+                        pg1 = sph2e_inner(buf1, gc_1, k_l, nfi, nfj, nfi * dk, nfik);
+                        a_bra_cart2spinor_si(tmp1R, tmp1I, pgx, pgy, pgz, pg1, dk * nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
+                        gc_x += nf;
+                        gc_y += nf;
+                        gc_z += nf;
+                        gc_1 += nf;
+                    }
+                }
             }
         }
-    }
-}
 
-/*
- * ssc ~ (spheric,spheric|cartesian)
- */
-static void c2s_sph_3c2e1_ssc(double* bufijk, double* gctr, FINT* dims,
-                       CINTEnvVars envs, double* cache)
-{
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = i_l * 2 + 1;
-    FINT dj = j_l * 2 + 1;
-    FINT nfi = envs.nfi;
-    FINT nfk = envs.nfk;
-    FINT ni = di * i_ctr;
-    FINT nj = dj * j_ctr;
-    FINT nk = nfk * k_ctr;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    FINT buflen = nfi * nfk * dj;
-    double* buf1, *buf2;
-    MALLOC_INSTACK(buf1, buflen);
-    MALLOC_INSTACK(buf2, buflen);
-    double* pijk;
-    double* tmp1;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_si_3c2e1i(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                   CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT k_l = envs.k_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT dk = k_l * 2 + 1;
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfik = nfi * nfk;
+            FINT nfijdk = nfi * nfj * dk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * dk;
+            FINT ic, jc, kc;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> bufx;
+            FINT buflen = nfi * dk * nfj;
+            MALLOC_INSTACK(bufx, buflen * 4);
+            Span<double> bufy = bufx + buflen;
+            Span<double> bufz = bufy + buflen;
+            Span<double> buf1 = bufz + buflen;
+            Span<double> pgx, pgy, pgz, pg1;
+            FINT len1 = di * dk * nf2j;
+            FINT len2 = di * dk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                tmp1 = (c2s_ket_sph[j_l])(buf1, gctr, nfik, nfik, j_l);
-                tmp1 = (c2s_bra_sph[i_l])(buf2, nfk * dj, tmp1, i_l);
-                pijk = bufijk + ofk * kc + ofj * jc + nfi * ic;
-                dcopy_iklj(pijk, tmp1, ni, nj, nk, 1, di, dj, nfk, 1);
-                gctr += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        pgx = sph2e_inner(bufx, gc_x, k_l, nfi, nfj, nfi * dk, nfik);
+                        pgy = sph2e_inner(bufy, gc_y, k_l, nfi, nfj, nfi * dk, nfik);
+                        pgz = sph2e_inner(bufz, gc_z, k_l, nfi, nfj, nfi * dk, nfik);
+                        pg1 = sph2e_inner(buf1, gc_1, k_l, nfi, nfj, nfi * dk, nfik);
+                        a_bra_cart2spinor_si(tmp1R, tmp1I, pgx, pgy, pgz, pg1, dk * nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
+                        gc_x += nf;
+                        gc_y += nf;
+                        gc_z += nf;
+                        gc_1 += nf;
+                    }
+                }
             }
         }
-    }
-}
 
-/*
- * 3c2e spinor integrals, cartesian to spin-free spinor for electron 1.
- */
-static void c2s_sf_3c2e1(double complex *opijk, double* gctr, FINT* dims,
-                  CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = k_l * 2 + 1;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ic, jc, kc;
-    FINT buflen = nfi * dk * nfj;
-    double* buf, *pbuf;
-    MALLOC_INSTACK(buf, buflen);
-    FINT len1 = di * dk * nf2j;
-    FINT len2 = di * dk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_sf_3c2e1_ssc(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                      CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            FINT len1 = di * nfk * nf2j;
+            FINT len2 = di * nfk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                pbuf = sph2e_inner(buf, gctr, k_l, nfi, nfj, nfi * dk, nfik);
-                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, pbuf, dk * nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
-                gctr += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfk * nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
+                        gctr += nf;
+                    }
+                }
             }
         }
-    }
-}
-static void c2s_sf_3c2e1i(double complex *opijk, double* gctr, FINT* dims,
-                   CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = k_l * 2 + 1;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT d_i = di * dk;
-    FINT d_j = dk * nfj;
-    FINT ic, jc, kc;
-    FINT buflen = nfi * dk * nfj;
-    double* buf, *pbuf;
-    MALLOC_INSTACK(buf, buflen);
-    FINT len1 = di * dk * nf2j;
-    FINT len2 = di * dk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
 
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_sf_3c2e1i_ssc(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                       CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            FINT len1 = di * nfk * nf2j;
+            FINT len2 = di * nfk * dj;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                pbuf = sph2e_inner(buf, gctr, k_l, nfi, nfj, nfi * dk, nfik);
-                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, pbuf, dk * nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
-                gctr += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfk * nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
+                        gctr += nf;
+                    }
+                }
             }
         }
-    }
-}
-/*
- * 3c2e integrals, cartesian to spinor for electron 1.
- */
-static void c2s_si_3c2e1(double complex *opijk, double* gctr, FINT* dims,
-                  CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = k_l * 2 + 1;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT nfijdk = nfi * nfj * dk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT d_i = di * dk;
-    FINT d_j = dk * nf2j;
-    FINT ic, jc, kc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
-    FINT buflen = nfi * dk * nfj;
-    double* bufx;
-    MALLOC_INSTACK(bufx, buflen * 4);
-    double* bufy = bufx + buflen;
-    double* bufz = bufy + buflen;
-    double* buf1 = bufz + buflen;
-    double* pgx, *pgy, *pgz, *pg1;
-    FINT len1 = di * dk * nf2j;
-    FINT len2 = di * dk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_si_3c2e1_ssc(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                      CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfijdk = nfi * nfj * nfk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
+            FINT len2 = di * nfk * dj;
+            FINT len1 = di * nfk * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                pgx = sph2e_inner(bufx, gc_x, k_l, nfi, nfj, nfi * dk, nfik);
-                pgy = sph2e_inner(bufy, gc_y, k_l, nfi, nfj, nfi * dk, nfik);
-                pgz = sph2e_inner(bufz, gc_z, k_l, nfi, nfj, nfi * dk, nfik);
-                pg1 = sph2e_inner(buf1, gc_1, k_l, nfi, nfj, nfi * dk, nfik);
-                a_bra_cart2spinor_si(tmp1R, tmp1I, pgx, pgy, pgz, pg1, dk * nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
-                gc_x += nf;
-                gc_y += nf;
-                gc_z += nf;
-                gc_1 += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfk * nfj, i_kp, i_l);
+                        a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
+                        gc_x += nf;
+                        gc_y += nf;
+                        gc_z += nf;
+                        gc_1 += nf;
+                    }
+                }
             }
         }
-    }
-}
-
-void c2s_si_3c2e1i(double complex *opijk, double* gctr, FINT* dims,
-                   CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT k_l = envs.k_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT dk = k_l * 2 + 1;
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfik = nfi * nfk;
-    FINT nfijdk = nfi * nfj * dk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * dk;
-    FINT ic, jc, kc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
-    double* bufx;
-    FINT buflen = nfi * dk * nfj;
-    MALLOC_INSTACK(bufx, buflen * 4);
-    double* bufy = bufx + buflen;
-    double* bufz = bufy + buflen;
-    double* buf1 = bufz + buflen;
-    double* pgx, *pgy, *pgz, *pg1;
-    FINT len1 = di * dk * nf2j;
-    FINT len2 = di * dk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void c2s_si_3c2e1i_ssc(Span<Complex> opijk, Span<double> gctr, FINT* dims,
+                       CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT* shls = envs.shls;
+            FINT* bas = envs.bas;
+            FINT i_sh = shls[0];
+            FINT j_sh = shls[1];
+            FINT i_l = envs.i_l;
+            FINT j_l = envs.j_l;
+            FINT i_kp = bas(KAPPA_OF, i_sh);
+            FINT j_kp = bas(KAPPA_OF, j_sh);
+            FINT i_ctr = envs.x_ctr[0];
+            FINT j_ctr = envs.x_ctr[1];
+            FINT k_ctr = envs.x_ctr[2];
+            FINT di = _len_spinor(i_kp, i_l);
+            FINT dj = _len_spinor(j_kp, j_l);
+            FINT nfi = envs.nfi;
+            FINT nfj = envs.nfj;
+            FINT nfk = envs.nfk;
+            FINT nf2i = nfi + nfi;
+            FINT nf2j = nfj + nfj;
+            FINT nf = envs.nf;
+            FINT nfijdk = nfi * nfj * nfk;
+            FINT ni = dims[0];
+            FINT nj = dims[1];
+            FINT nk = dims[2];
+            FINT ofj = ni * dj;
+            FINT ofk = ni * nj * nfk;
+            FINT ic, jc, kc;
+            Span<double> gc_x = gctr;
+            Span<double> gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
+            Span<double> gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
+            FINT len2 = di * nfk * dj;
+            FINT len1 = di * nfk * nf2j;
+            Span<double> tmp1R, tmp1I, tmp2R, tmp2I;
+            MALLOC_INSTACK(tmp1R, len1);
+            MALLOC_INSTACK(tmp1I, len1);
+            MALLOC_INSTACK(tmp2R, len2);
+            MALLOC_INSTACK(tmp2I, len2);
+            Span<Complex> pijk;
+
+            for (kc = 0; kc < k_ctr; kc++)
             {
-                pgx = sph2e_inner(bufx, gc_x, k_l, nfi, nfj, nfi * dk, nfik);
-                pgy = sph2e_inner(bufy, gc_y, k_l, nfi, nfj, nfi * dk, nfik);
-                pgz = sph2e_inner(bufz, gc_z, k_l, nfi, nfj, nfi * dk, nfik);
-                pg1 = sph2e_inner(buf1, gc_1, k_l, nfi, nfj, nfi * dk, nfik);
-                a_bra_cart2spinor_si(tmp1R, tmp1I, pgx, pgy, pgz, pg1, dk * nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * dk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, dk, 1);
-                gc_x += nf;
-                gc_y += nf;
-                gc_z += nf;
-                gc_1 += nf;
+                for (jc = 0; jc < j_ctr; jc++)
+                {
+                    for (ic = 0; ic < i_ctr; ic++)
+                    {
+                        a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfk * nfj, i_kp, i_l);
+                        a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
+                        pijk = opijk + ofk * kc + ofj * jc + di * ic;
+                        zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
+                        gc_x += nf;
+                        gc_y += nf;
+                        gc_z += nf;
+                        gc_1 += nf;
+                    }
+                }
             }
         }
-    }
-}
 
-void c2s_sf_3c2e1_ssc(double complex *opijk, double* gctr, FINT* dims,
-                      CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    FINT len1 = di * nfk * nf2j;
-    FINT len2 = di * nfk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
 
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        /*************************************************
+         *
+         * 3-center 1-electron integral transformation
+         *
+         *************************************************/
+        static void c2s_sph_3c1e(Span<double> output, Span<double> gctr, FINT* dims,
+                  CINTEnvVars envs, Span<double> cache)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            c2s_sph_3c2e1(output, gctr, dims, envs, cache);
+        }
+
+        static void c2s_cart_3c1e(Span<double> output, Span<double> gctr, FINT* dims,
+                   CINTEnvVars envs, Span<double> cache)
+        {
+            c2s_cart_3c2e1(output, gctr, dims, envs, cache);
+        }
+
+
+        /*************************************************
+         *
+         * transform vectors
+         *
+         *************************************************/
+        static Span<double> CINTc2s_bra_sph(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            return (c2s_bra_sph[l])(gsph, nket, gcart, l);
+        }
+        static Span<double> CINTc2s_ket_sph(Span<double> gsph, FINT nbra, Span<double> gcart, FINT l)
+        {
+            return (c2s_ket_sph[l])(gsph, gcart, nbra, nbra, l);
+        }
+        static Span<double> CINTc2s_ket_sph1(Span<double> sph, Span<double> cart, FINT lds, FINT ldc, FINT l)
+        {
+            return (c2s_ket_sph1[l])(sph, cart, lds, ldc, l);
+        }
+
+        static void CINTc2s_bra_spinor_e1sf(Span<Complex> gsp, FINT nket,
+                             Span<double> gcart, FINT kappa, FINT l)
+        {
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspa = MemoryMarshal.Cast<Complex, double>(gsp);
+            Span<double> gspb = gspa[(nket * nd * OF_CMPLX)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfk * nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
-                gctr += nf;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < nd; i++)
+                {
+                    saR = 0;
+                    saI = 0;
+                    sbR = 0;
+                    sbI = 0;
+
+                    for (n = 0; n < nf; n++)
+                    {
+                        v1 = gcart[j * nf + n];
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        saR += caR * v1;
+                        saI += -caI * v1;
+                        sbR += cbR * v1;
+                        sbI += -cbI * v1;
+                    }
+                    gspa[(j * nd + i) * OF_CMPLX] = saR;
+                    gspa[(j * nd + i) * OF_CMPLX + 1] = saI;
+                    gspb[(j * nd + i) * OF_CMPLX] = sbR;
+                    gspb[(j * nd + i) * OF_CMPLX + 1] = sbI;
+                }
             }
         }
-    }
-}
 
-void c2s_sf_3c2e1i_ssc(double complex *opijk, double* gctr, FINT* dims,
-                       CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    FINT len1 = di * nfk * nf2j;
-    FINT len2 = di * nfk * dj;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
-
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void CINTc2s_bra_spinor_sf(Span<Complex> gsp, FINT nket,
+                           Span<Complex> gcart, FINT kappa, FINT l)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspa = MemoryMarshal.Cast<Complex, double>(gsp);
+            Span<double> gspb = gspa[(nket * nd * OF_CMPLX)..];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                a_bra_cart2spinor_sf(tmp1R, tmp1I, null, null, null, gctr, nfk * nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
-                gctr += nf;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1R, v1I;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < nd; i++)
+                {
+                    saR = 0;
+                    saI = 0;
+                    sbR = 0;
+                    sbI = 0;
+
+                    for (n = 0; n < nf; n++)
+                    {
+                        v1R = gcart[j * nf + n].Real;
+                        v1I = gcart[j * nf + n].Imaginary;
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        saR += caR * v1R + caI * v1I;
+                        saI += -caI * v1R + caR * v1I;
+                        sbR += cbR * v1R + cbI * v1I;
+                        sbI += -cbI * v1R + cbR * v1I;
+                    }
+                    gspa[(j * nd + i) * OF_CMPLX] = saR;
+                    gspa[(j * nd + i) * OF_CMPLX + 1] = saI;
+                    gspb[(j * nd + i) * OF_CMPLX] = sbR;
+                    gspb[(j * nd + i) * OF_CMPLX + 1] = sbI;
+                }
             }
         }
-    }
-}
-void c2s_si_3c2e1_ssc(double complex *opijk, double* gctr, FINT* dims,
-                      CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfijdk = nfi * nfj * nfk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
-    FINT len2 = di * nfk * dj;
-    FINT len1 = di * nfk * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
 
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void CINTc2s_ket_spinor(Span<Complex> gsp, FINT nbra,
+                        Span<Complex> gcart, FINT kappa, FINT l)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> coeffR, coeffI;
+            Span<double> gspz = MemoryMarshal.Cast<Complex, double>(gsp);
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfk * nfj, i_kp, i_l);
-                a_ket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
-                gc_x += nf;
-                gc_y += nf;
-                gc_z += nf;
-                gc_1 += nf;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double cR, cI, gR, gI;
+
+            for (i = 0; i < nd; i++)
+            {
+
+                for (j = 0; j < nbra; j++)
+                {
+                    gspz[(j + i * nbra) * OF_CMPLX] = 0;
+                    gspz[(j + i * nbra) * OF_CMPLX + 1] = 0;
+                }
+                for (n = 0; n < nf2; n++)
+                {
+                    cR = coeffR[i * nf2 + n];
+                    cI = coeffI[i * nf2 + n];
+
+                    for (j = 0; j < nbra; j++)
+                    {
+                        gR = gcart[j + n * nbra].Real;
+                        gI = gcart[j + n * nbra].Imaginary;
+                        gspz[(j + i * nbra) * OF_CMPLX] += cR * gR - cI * gI;
+                        gspz[(j + i * nbra) * OF_CMPLX + 1] += cI * gR + cR * gI;
+                    }
+                }
             }
         }
-    }
-}
-void c2s_si_3c2e1i_ssc(double complex *opijk, double* gctr, FINT* dims,
-                       CINTEnvVars envs, double* cache)
-{
-    FINT* shls = envs.shls;
-    FINT* bas = envs.bas;
-    FINT i_sh = shls[0];
-    FINT j_sh = shls[1];
-    FINT i_l = envs.i_l;
-    FINT j_l = envs.j_l;
-    FINT i_kp = bas(KAPPA_OF, i_sh);
-    FINT j_kp = bas(KAPPA_OF, j_sh);
-    FINT i_ctr = envs.x_ctr[0];
-    FINT j_ctr = envs.x_ctr[1];
-    FINT k_ctr = envs.x_ctr[2];
-    FINT di = _len_spinor(i_kp, i_l);
-    FINT dj = _len_spinor(j_kp, j_l);
-    FINT nfi = envs.nfi;
-    FINT nfj = envs.nfj;
-    FINT nfk = envs.nfk;
-    FINT nf2i = nfi + nfi;
-    FINT nf2j = nfj + nfj;
-    FINT nf = envs.nf;
-    FINT nfijdk = nfi * nfj * nfk;
-    FINT ni = dims[0];
-    FINT nj = dims[1];
-    FINT nk = dims[2];
-    FINT ofj = ni * dj;
-    FINT ofk = ni * nj * nfk;
-    FINT ic, jc, kc;
-    double* gc_x = gctr;
-    double* gc_y = gc_x + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_z = gc_y + nf * i_ctr * j_ctr * k_ctr;
-    double* gc_1 = gc_z + nf * i_ctr * j_ctr * k_ctr;
-    FINT len2 = di * nfk * dj;
-    FINT len1 = di * nfk * nf2j;
-    double* tmp1R, *tmp1I, *tmp2R, *tmp2I;
-    MALLOC_INSTACK(tmp1R, len1);
-    MALLOC_INSTACK(tmp1I, len1);
-    MALLOC_INSTACK(tmp2R, len2);
-    MALLOC_INSTACK(tmp2I, len2);
-    double complex *pijk;
 
-    for (kc = 0; kc < k_ctr; kc++)
-    {
-        for (jc = 0; jc < j_ctr; jc++)
+        static void CINTc2s_iket_spinor(Span<Complex> gsp, FINT nbra,
+                         Span<Complex> gcart, FINT kappa, FINT l)
         {
-            for (ic = 0; ic < i_ctr; ic++)
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> coeffR, coeffI;
+            Span<double> gspz = MemoryMarshal.Cast<Complex, double>(gsp);
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                a_bra_cart2spinor_si(tmp1R, tmp1I, gc_x, gc_y, gc_z, gc_1, nfk * nfj, i_kp, i_l);
-                a_iket_cart2spinor(tmp2R, tmp2I, tmp1R, tmp1I, di * nfk, j_kp, j_l);
-                pijk = opijk + ofk * kc + ofj * jc + di * ic;
-                zcopy_iklj(pijk, tmp2R, tmp2I, ni, nj, nk, 1, di, dj, nfk, 1);
-                gc_x += nf;
-                gc_y += nf;
-                gc_z += nf;
-                gc_1 += nf;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double cR, cI, gR, gI;
+
+            for (i = 0; i < nd; i++)
+            {
+
+                for (j = 0; j < nbra; j++)
+                {
+                    gspz[(j + i * nbra) * OF_CMPLX] = 0;
+                    gspz[(j + i * nbra) * OF_CMPLX + 1] = 0;
+                }
+                for (n = 0; n < nf2; n++)
+                {
+                    cR = coeffR[i * nf2 + n];
+                    cI = coeffI[i * nf2 + n];
+
+                    for (j = 0; j < nbra; j++)
+                    {
+                        gR = gcart[j + n * nbra].Real;
+                        gI = gcart[j + n * nbra].Imaginary;
+                        gspz[(j + i * nbra) * OF_CMPLX] -= cI * gR + cR * gI;
+                        gspz[(j + i * nbra) * OF_CMPLX + 1] += cR * gR - cI * gI;
+                    }
+                }
             }
         }
-    }
-}
 
-
-/*************************************************
- *
- * 3-center 1-electron integral transformation
- *
- *************************************************/
-void c2s_sph_3c1e(double*out, double* gctr, FINT* dims,
-                  CINTEnvVars envs, double* cache)
-{
-    c2s_sph_3c2e1(out, gctr, dims, envs, cache);
-}
-
-void c2s_cart_3c1e(double*out, double* gctr, FINT* dims,
-                   CINTEnvVars envs, double* cache)
-{
-    c2s_cart_3c2e1(out, gctr, dims, envs, cache);
-}
-
-
-/*************************************************
- *
- * transform vectors
- *
- *************************************************/
-double* CINTc2s_bra_sph(double* gsph, FINT nket, double* gcart, FINT l)
-{
-    return (c2s_bra_sph[l])(gsph, nket, gcart, l);
-}
-double* CINTc2s_ket_sph(double* gsph, FINT nbra, double* gcart, FINT l)
-{
-    return (c2s_ket_sph[l])(gsph, gcart, nbra, nbra, l);
-}
-double* CINTc2s_ket_sph1(double* sph, double* cart, FINT lds, FINT ldc, FINT l)
-{
-    return (c2s_ket_sph1[l])(sph, cart, lds, ldc, l);
-}
-
-void CINTc2s_bra_spinor_e1sf(double complex *gsp, FINT nket,
-                             double* gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspa = (double*)gsp;
-    double* gspb = gspa + nket * nd * OF_CMPLX;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
+        static void CINTc2s_bra_spinor(Span<Complex> gsp, FINT nket,
+                        Span<Complex> gcart, FINT kappa, FINT l)
         {
-            saR = 0;
-            saI = 0;
-            sbR = 0;
-            sbI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf; n++)
-            {
-                v1 = gcart[j * nf + n];
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-                saR += caR * v1;
-                saI += -caI * v1;
-                sbR += cbR * v1;
-                sbI += -cbI * v1;
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspz = MemoryMarshal.Cast<Complex, double>(gsp);
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-            gspa[(j * nd + i) * OF_CMPLX] = saR;
-            gspa[(j * nd + i) * OF_CMPLX + 1] = saI;
-            gspb[(j * nd + i) * OF_CMPLX] = sbR;
-            gspb[(j * nd + i) * OF_CMPLX + 1] = sbI;
-        }
-    }
-}
-
-void CINTc2s_bra_spinor_sf(double complex *gsp, FINT nket,
-                           double complex *gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspa = (double*)gsp;
-    double* gspb = gspa + nket * nd * OF_CMPLX;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double saR, saI, sbR, sbI, caR, caI, cbR, cbI, v1R, v1I;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
-        {
-            saR = 0;
-            saI = 0;
-            sbR = 0;
-            sbI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf; n++)
+            else
             {
-                v1R = creal(gcart[j * nf + n]);
-                v1I = cimag(gcart[j * nf + n]);
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-                saR += caR * v1R + caI * v1I;
-                saI += -caI * v1R + caR * v1I;
-                sbR += cbR * v1R + cbI * v1I;
-                sbI += -cbI * v1R + cbR * v1I;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
             }
-            gspa[(j * nd + i) * OF_CMPLX] = saR;
-            gspa[(j * nd + i) * OF_CMPLX + 1] = saI;
-            gspb[(j * nd + i) * OF_CMPLX] = sbR;
-            gspb[(j * nd + i) * OF_CMPLX + 1] = sbI;
-        }
-    }
-}
 
-void CINTc2s_ket_spinor(double complex *gsp, FINT nbra,
-                        double complex *gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    double* coeffR, *coeffI;
-    double* gspz = (double*)gsp;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
+            FINT i, j, n;
+            double sR, sI, cR, cI, gR, gI;
 
-    FINT i, j, n;
-    double cR, cI, gR, gI;
-
-    for (i = 0; i < nd; i++)
-    {
-#pragma GCC ivdep
-        for (j = 0; j < nbra; j++)
-        {
-            gspz[(j + i * nbra) * OF_CMPLX] = 0;
-            gspz[(j + i * nbra) * OF_CMPLX + 1] = 0;
-        }
-        for (n = 0; n < nf2; n++)
-        {
-            cR = coeffR[i * nf2 + n];
-            cI = coeffI[i * nf2 + n];
-#pragma GCC ivdep
-            for (j = 0; j < nbra; j++)
+            for (j = 0; j < nket; j++)
             {
-                gR = creal(gcart[j + n * nbra]);
-                gI = cimag(gcart[j + n * nbra]);
-                gspz[(j + i * nbra) * OF_CMPLX] += cR * gR - cI * gI;
-                gspz[(j + i * nbra) * OF_CMPLX + 1] += cI * gR + cR * gI;
+                for (i = 0; i < nd; i++)
+                {
+                    sR = 0;
+                    sI = 0;
+
+                    for (n = 0; n < nf2; n++)
+                    {
+                        gR = gcart[j * nf2 + n].Real;
+                        gI = gcart[j * nf2 + n].Imaginary;
+                        cR = coeffR[i * nf2 + n];
+                        cI = coeffI[i * nf2 + n];
+                        sR += cR * gR + cI * gI;
+                        sI += cR * gI - cI * gR;
+                    }
+                    gspz[(j * nd + i) * OF_CMPLX] = sR;
+                    gspz[(j * nd + i) * OF_CMPLX + 1] = sI;
+                }
             }
         }
-    }
-}
 
-void CINTc2s_iket_spinor(double complex *gsp, FINT nbra,
-                         double complex *gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    double* coeffR, *coeffI;
-    double* gspz = (double*)gsp;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double cR, cI, gR, gI;
-
-    for (i = 0; i < nd; i++)
-    {
-#pragma GCC ivdep
-        for (j = 0; j < nbra; j++)
+        static void CINTc2s_bra_spinor_si(Span<Complex> gsp, FINT nket,
+                           Span<Complex> gcart, FINT kappa, FINT l)
         {
-            gspz[(j + i * nbra) * OF_CMPLX] = 0;
-            gspz[(j + i * nbra) * OF_CMPLX + 1] = 0;
-        }
-        for (n = 0; n < nf2; n++)
-        {
-            cR = coeffR[i * nf2 + n];
-            cI = coeffI[i * nf2 + n];
-#pragma GCC ivdep
-            for (j = 0; j < nbra; j++)
+            FINT nf = _len_cart[l];
+            FINT nf2 = nf * 2;
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> gspz = MemoryMarshal.Cast<Complex, double>(gsp);
+            FINT chunk_size = nf * nket;
+            Span<Complex> gcarta = gcart[..chunk_size];
+            Span<Complex> gcartb = gcart[chunk_size..(2 * chunk_size)];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
+            }
+            else
             {
-                gR = creal(gcart[j + n * nbra]);
-                gI = cimag(gcart[j + n * nbra]);
-                gspz[(j + i * nbra) * OF_CMPLX] -= cI * gR + cR * gI;
-                gspz[(j + i * nbra) * OF_CMPLX + 1] += cR * gR - cI * gI;
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, n;
+            double sR, sI, caR, caI, cbR, cbI, gaR, gaI, gbR, gbI;
+
+            for (j = 0; j < nket; j++)
+            {
+                for (i = 0; i < nd; i++)
+                {
+                    sR = 0;
+                    sI = 0;
+
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+                        gaR = gcarta[j * nf + n].Real;
+                        gaI = gcarta[j * nf + n].Imaginary;
+                        gbR = gcartb[j * nf + n].Real;
+                        gbI = gcartb[j * nf + n].Imaginary;
+                        sR += caR * gaR + caI * gaI + cbR * gbR + cbI * gbI;
+                        sI += caR * gaI - caI * gaR + cbR * gbI - cbI * gbR;
+                    }
+                    gspz[(j * nd + i) * OF_CMPLX] = sR;
+                    gspz[(j * nd + i) * OF_CMPLX + 1] = sI;
+                }
             }
         }
-    }
-}
-
-void CINTc2s_bra_spinor(double complex *gsp, FINT nket,
-                        double complex *gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    double* gspz = (double*)gsp;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double sR, sI, cR, cI, gR, gI;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
-        {
-            sR = 0;
-            sI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf2; n++)
-            {
-                gR = creal(gcart[j * nf2 + n]);
-                gI = cimag(gcart[j * nf2 + n]);
-                cR = coeffR[i * nf2 + n];
-                cI = coeffI[i * nf2 + n];
-                sR += cR * gR + cI * gI;
-                sI += cR * gI - cI * gR;
-            }
-            gspz[(j * nd + i) * OF_CMPLX] = sR;
-            gspz[(j * nd + i) * OF_CMPLX + 1] = sI;
-        }
-    }
-}
-
-void CINTc2s_bra_spinor_si(double complex *gsp, FINT nket,
-                           double complex *gcart, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nf2 = nf * 2;
-    FINT nd = _len_spinor(kappa, l);
-    double* gspz = (double*)gsp;
-    double complex *gcarta = gcart;
-    double complex *gcartb = gcarta + nf * nket;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, n;
-    double sR, sI, caR, caI, cbR, cbI, gaR, gaI, gbR, gbI;
-
-    for (j = 0; j < nket; j++)
-    {
-        for (i = 0; i < nd; i++)
-        {
-            sR = 0;
-            sI = 0;
-#pragma GCC ivdep
-            for (n = 0; n < nf; n++)
-            {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-                gaR = creal(gcarta[j * nf + n]);
-                gaI = cimag(gcarta[j * nf + n]);
-                gbR = creal(gcartb[j * nf + n]);
-                gbI = cimag(gcartb[j * nf + n]);
-                sR += caR * gaR + caI * gaI + cbR * gbR + cbI * gbI;
-                sI += caR * gaI - caI * gaR + cbR * gbI - cbI * gbR;
-            }
-            gspz[(j * nd + i) * OF_CMPLX] = sR;
-            gspz[(j * nd + i) * OF_CMPLX + 1] = sI;
-        }
-    }
-}
 
 
-/*
- * vectors gspa and gspb are the upper and lower components of the
- * two-component vector
- */
-void CINTc2s_ket_spinor_sf1(double complex *gspa, double complex *gspb, double* gcart,
+        /*
+         * vectors gspa and gspb are the upper and lower components of the
+         * two-component vector
+         */
+        static void CINTc2s_ket_spinor_sf1(Span<Complex> gspa, Span<Complex> gspb, Span<double> gcart,
                             FINT lds, FINT ldc, FINT nctr, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspaz = (double*)gspa;
-    double* gspbz = (double*)gspb;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, k, n;
-    double caR, caI, cbR, cbI, v1;
-
-    for (k = 0; k < nctr; k++)
-    {
-        for (i = 0; i < nd; i++)
         {
-#pragma GCC ivdep
-            for (j = 0; j < ldc; j++)
-            {
-                gspaz[(j + i * lds) * OF_CMPLX] = 0;
-                gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-            for (n = 0; n < nf; n++)
+            else
             {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (j = 0; j < ldc; j++)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, k, n;
+            double caR, caI, cbR, cbI, v1;
+
+            FINT chunk_size = nd * lds;
+            for (k = 0; k < nctr; k++)
+            {
+                Span<double> gspaz = MemoryMarshal.Cast<Complex, double>(gspa.Slice(k * chunk_size, chunk_size));
+                Span<double> gspbz = MemoryMarshal.Cast<Complex, double>(gspb.Slice(k * chunk_size, chunk_size));
+                Span<double> gcartz =
+                    gcart.Slice(k * nf * ldc, nf * ldc);
+                for (i = 0; i < nd; i++)
                 {
-                    v1 = gcart[j + n * ldc];
-                    gspaz[(j + i * lds) * OF_CMPLX] += caR * v1;
-                    gspaz[(j + i * lds) * OF_CMPLX + 1] += caI * v1;
-                    gspbz[(j + i * lds) * OF_CMPLX] += cbR * v1;
-                    gspbz[(j + i * lds) * OF_CMPLX + 1] += cbI * v1;
+
+                    for (j = 0; j < ldc; j++)
+                    {
+                        gspaz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                    }
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (j = 0; j < ldc; j++)
+                        {
+                            v1 = gcartz[j + n * ldc];
+                            gspaz[(j + i * lds) * OF_CMPLX] += caR * v1;
+                            gspaz[(j + i * lds) * OF_CMPLX + 1] += caI * v1;
+                            gspbz[(j + i * lds) * OF_CMPLX] += cbR * v1;
+                            gspbz[(j + i * lds) * OF_CMPLX + 1] += cbI * v1;
+                        }
+                    }
                 }
             }
         }
-        gspaz += nd * lds * OF_CMPLX;
-        gspbz += nd * lds * OF_CMPLX;
-        gcart += nf * ldc;
-    }
-}
 
-void CINTc2s_iket_spinor_sf1(double complex *gspa, double complex *gspb, double* gcart,
+        static void CINTc2s_iket_spinor_sf1(Span<Complex> gspa, Span<Complex> gspb, Span<double> gcart,
                              FINT lds, FINT ldc, FINT nctr, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    double* gspaz = (double*)gspa;
-    double* gspbz = (double*)gspb;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, k, n;
-    double caR, caI, cbR, cbI, v1;
-
-    for (k = 0; k < nctr; k++)
-    {
-        for (i = 0; i < nd; i++)
         {
-#pragma GCC ivdep
-            for (j = 0; j < ldc; j++)
-            {
-                gspaz[(j + i * lds) * OF_CMPLX] = 0;
-                gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-            for (n = 0; n < nf; n++)
+            else
             {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (j = 0; j < ldc; j++)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, k, n;
+            double caR, caI, cbR, cbI, v1;
+
+            FINT chunk_size = nd * lds;
+            for (k = 0; k < nctr; k++)
+            {
+                Span<Complex> gspai = 
+                    gspa.Slice(k * chunk_size, chunk_size);
+                Span<Complex> gspbi = 
+                    gspb.Slice(k * chunk_size, chunk_size);
+                Span<double> gcarti =
+                    gcart.Slice(k * nf * ldc, nf * ldc);
+                for (i = 0; i < nd; i++)
                 {
-                    v1 = gcart[j + n * ldc];
-                    gspaz[(j + i * lds) * OF_CMPLX] -= caI * v1;
-                    gspaz[(j + i * lds) * OF_CMPLX + 1] += caR * v1;
-                    gspbz[(j + i * lds) * OF_CMPLX] -= cbI * v1;
-                    gspbz[(j + i * lds) * OF_CMPLX + 1] += cbR * v1;
+
+                    for (j = 0; j < ldc; j++)
+                    {
+                        gspai[j + i * lds] = Complex.Zero;
+                        gspbi[j + i * lds] = Complex.Zero;
+                    }
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (j = 0; j < ldc; j++)
+                        {
+                            v1 = gcarti[j + n * ldc];
+                            ref var gspaiv =
+                            ref gspai[(j + i * lds)];
+                            ref var gspbiv =
+                            ref gspbi[(j + i * lds)];
+                            gspaiv += new Complex(-caI * v1, caR * v1);
+                            gspbiv += new Complex(-cbI * v1, cbR * v1);
+                        }
+                    }
                 }
             }
         }
-        gspaz += nd * lds * OF_CMPLX;
-        gspbz += nd * lds * OF_CMPLX;
-        gcart += nf * ldc;
-    }
-}
 
-void CINTc2s_ket_spinor_si1(double complex *gspa, double complex *gspb, double* gcart,
+        static void CINTc2s_ket_spinor_si1(Span<Complex> gspa, Span<Complex> gspb, Span<double> gcart,
                             FINT lds, FINT ldc, FINT nctr, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ngc = nf * ldc;
-    double* gc_x = gcart;
-    double* gc_y = gc_x + nctr * ngc;
-    double* gc_z = gc_y + nctr * ngc;
-    double* gc_1 = gc_z + nctr * ngc;
-    double* gspaz = (double*)gspa;
-    double* gspbz = (double*)gspb;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, k, n;
-    double caR, caI, cbR, cbI, v1, vx, vy, vz;
-
-    for (k = 0; k < nctr; k++)
-    {
-        for (i = 0; i < nd; i++)
         {
-#pragma GCC ivdep
-            for (j = 0; j < ldc; j++)
-            {
-                gspaz[(j + i * lds) * OF_CMPLX] = 0;
-                gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ngc = nf * ldc;
+            FINT chunk_size = nctr * ngc;
+            Span<double> gc_x_total =
+                gcart[0..chunk_size];
+            Span<double> gc_y_total =
+                gcart[chunk_size..(chunk_size * 2)];
+            Span<double> gc_z_total =
+                gcart[(chunk_size * 2)..(chunk_size * 3)];
+            Span<double> gc_1_total =
+                gcart[(chunk_size * 3)..(chunk_size * 4)];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-            for (n = 0; n < nf; n++)
+            else
             {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (j = 0; j < ldc; j++)
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
+
+            FINT i, j, k, n;
+            double caR, caI, cbR, cbI, v1, vx, vy, vz;
+
+            FINT chunk_size2 = nd * lds;
+            for (k = 0; k < nctr; k++)
+            {
+                Span<double> gspaz = MemoryMarshal.Cast<Complex, double>(gspa.Slice(k * chunk_size2, chunk_size2));
+                Span<double> gspbz = MemoryMarshal.Cast<Complex, double>(gspb.Slice(k * chunk_size2, chunk_size2));
+                Span<double> gc_x =
+                    gc_x_total.Slice(k * ngc, ngc);
+                Span<double> gc_y =
+                    gc_y_total.Slice(k * ngc, ngc);
+                Span<double> gc_z =
+                    gc_z_total.Slice(k * ngc, ngc);
+                Span<double> gc_1 =
+                    gc_1_total.Slice(k * ngc, ngc);
+                for (i = 0; i < nd; i++)
                 {
-                    v1 = gc_1[j + n * ldc];
-                    vx = gc_x[j + n * ldc];
-                    vy = gc_y[j + n * ldc];
-                    vz = gc_z[j + n * ldc];
-                    gspaz[(j + i * lds) * OF_CMPLX] += caR * v1 - caI * vz + cbR * vy - cbI * vx;
-                    gspaz[(j + i * lds) * OF_CMPLX + 1] += caI * v1 + caR * vz + cbI * vy + cbR * vx;
-                    gspbz[(j + i * lds) * OF_CMPLX] += cbR * v1 + cbI * vz - caR * vy - caI * vx;
-                    gspbz[(j + i * lds) * OF_CMPLX + 1] += cbI * v1 - cbR * vz - caI * vy + caR * vx;
+
+                    for (j = 0; j < ldc; j++)
+                    {
+                        gspaz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                    }
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (j = 0; j < ldc; j++)
+                        {
+                            v1 = gc_1[j + n * ldc];
+                            vx = gc_x[j + n * ldc];
+                            vy = gc_y[j + n * ldc];
+                            vz = gc_z[j + n * ldc];
+                            gspaz[(j + i * lds) * OF_CMPLX] += caR * v1 - caI * vz + cbR * vy - cbI * vx;
+                            gspaz[(j + i * lds) * OF_CMPLX + 1] += caI * v1 + caR * vz + cbI * vy + cbR * vx;
+                            gspbz[(j + i * lds) * OF_CMPLX] += cbR * v1 + cbI * vz - caR * vy - caI * vx;
+                            gspbz[(j + i * lds) * OF_CMPLX + 1] += cbI * v1 - cbR * vz - caI * vy + caR * vx;
+                        }
+                    }
                 }
             }
         }
-        gspaz += nd * lds * OF_CMPLX;
-        gspbz += nd * lds * OF_CMPLX;
-        gc_x += ngc;
-        gc_y += ngc;
-        gc_z += ngc;
-        gc_1 += ngc;
-    }
-}
 
-void CINTc2s_iket_spinor_si1(double complex *gspa, double complex *gspb, double* gcart,
+        static void CINTc2s_iket_spinor_si1(Span<Complex> gspa, Span<Complex> gspb, Span<double> gcart,
                              FINT lds, FINT ldc, FINT nctr, FINT kappa, FINT l)
-{
-    FINT nf = _len_cart[l];
-    FINT nd = _len_spinor(kappa, l);
-    FINT ngc = nf * ldc;
-    double* gc_x = gcart;
-    double* gc_y = gc_x + nctr * ngc;
-    double* gc_z = gc_y + nctr * ngc;
-    double* gc_1 = gc_z + nctr * ngc;
-    double* gspaz = (double*)gspa;
-    double* gspbz = (double*)gspb;
-    double* coeffR, *coeffI;
-    if (kappa < 0)
-    { // j = l + 1/2
-        coeffR = g_c2s[l].cart2j_gt_lR;
-        coeffI = g_c2s[l].cart2j_gt_lI;
-    }
-    else
-    {
-        coeffR = g_c2s[l].cart2j_lt_lR;
-        coeffI = g_c2s[l].cart2j_lt_lI;
-    }
-
-    FINT i, j, k, n;
-    double caR, caI, cbR, cbI, v1, vx, vy, vz;
-
-    for (k = 0; k < nctr; k++)
-    {
-        for (i = 0; i < nd; i++)
         {
-#pragma GCC ivdep
-            for (j = 0; j < ldc; j++)
-            {
-                gspaz[(j + i * lds) * OF_CMPLX] = 0;
-                gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX] = 0;
-                gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+            FINT nf = _len_cart[l];
+            FINT nd = _len_spinor(kappa, l);
+            FINT ngc = nf * ldc;
+            FINT chunk_size = nctr * ngc;
+            Span<double> gc_x_total = 
+                gcart[0..chunk_size];
+            Span<double> gc_y_total = 
+                gcart[chunk_size..(chunk_size * 2)];
+            Span<double> gc_z_total = 
+                gcart[(chunk_size * 2)..(chunk_size * 3)];
+            Span<double> gc_1_total = 
+                gcart[(chunk_size * 3)..(chunk_size * 4)];
+            Span<double> coeffR, coeffI;
+            if (kappa < 0)
+            { // j = l + 1/2
+                coeffR = g_c2s[l].cart2j_gt_lR.Span;
+                coeffI = g_c2s[l].cart2j_gt_lI.Span;
             }
-            for (n = 0; n < nf; n++)
+            else
             {
-                caR = coeffR[i * nf * 2 + n];
-                caI = coeffI[i * nf * 2 + n];
-                cbR = coeffR[i * nf * 2 + nf + n];
-                cbI = coeffI[i * nf * 2 + nf + n];
-#pragma GCC ivdep
-                for (j = 0; j < ldc; j++)
-                {
-                    v1 = gc_1[j + n * ldc];
-                    vx = gc_x[j + n * ldc];
-                    vy = gc_y[j + n * ldc];
-                    vz = gc_z[j + n * ldc];
+                coeffR = g_c2s[l].cart2j_lt_lR.Span;
+                coeffI = g_c2s[l].cart2j_lt_lI.Span;
+            }
 
-                    gspaz[(j + i * lds) * OF_CMPLX] -= caI * v1 + caR * vz + cbI * vy + cbR * vx;
-                    gspaz[(j + i * lds) * OF_CMPLX + 1] += caR * v1 - caI * vz + cbR * vy - cbI * vx;
-                    gspbz[(j + i * lds) * OF_CMPLX] -= cbI * v1 - cbR * vz - caI * vy + caR * vx;
-                    gspbz[(j + i * lds) * OF_CMPLX + 1] += cbR * v1 + cbI * vz - caR * vy - caI * vx;
+            FINT i, j, k, n;
+            double caR, caI, cbR, cbI, v1, vx, vy, vz;
+
+            int chunk_size2 = nd * lds;
+            for (k = 0; k < nctr; k++)
+            {
+                Span<double> gspaz = MemoryMarshal.Cast<Complex, double>(gspa.Slice(k * chunk_size2, chunk_size2));
+                Span<double> gspbz = MemoryMarshal.Cast<Complex, double>(gspb.Slice(k * chunk_size2, chunk_size2));
+                Span<double> gc_x = 
+                    gc_x_total.Slice(k * ngc, ngc);
+                Span<double> gc_y =
+                    gc_y_total.Slice(k * ngc, ngc);
+                Span<double> gc_z =
+                    gc_z_total.Slice(k * ngc, ngc);
+                Span<double> gc_1 =
+                    gc_1_total.Slice(k * ngc, ngc);
+                for (i = 0; i < nd; i++)
+                {
+                    for (j = 0; j < ldc; j++)
+                    {
+                        gspaz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspaz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX] = 0;
+                        gspbz[(j + i * lds) * OF_CMPLX + 1] = 0;
+                    }
+                    for (n = 0; n < nf; n++)
+                    {
+                        caR = coeffR[i * nf * 2 + n];
+                        caI = coeffI[i * nf * 2 + n];
+                        cbR = coeffR[i * nf * 2 + nf + n];
+                        cbI = coeffI[i * nf * 2 + nf + n];
+
+                        for (j = 0; j < ldc; j++)
+                        {
+                            v1 = gc_1[j + n * ldc];
+                            vx = gc_x[j + n * ldc];
+                            vy = gc_y[j + n * ldc];
+                            vz = gc_z[j + n * ldc];
+
+                            gspaz[(j + i * lds) * OF_CMPLX] -= caI * v1 + caR * vz + cbI * vy + cbR * vx;
+                            gspaz[(j + i * lds) * OF_CMPLX + 1] += caR * v1 - caI * vz + cbR * vy - cbI * vx;
+                            gspbz[(j + i * lds) * OF_CMPLX] -= cbI * v1 - cbR * vz - caI * vy + caR * vx;
+                            gspbz[(j + i * lds) * OF_CMPLX + 1] += cbR * v1 + cbI * vz - caR * vy - caI * vx;
+                        }
+                    }
                 }
             }
         }
-        gspaz += nd * lds * OF_CMPLX;
-        gspbz += nd * lds * OF_CMPLX;
-        gc_x += ngc;
-        gc_y += ngc;
-        gc_z += ngc;
-        gc_1 += ngc;
-    }
-}
 
-/*
- * Spherical to Cartesian back transformation
- * The input gsph (Fortran contiguous) has l*2+1 rows
- * The output gcart (Fortran contiguous) has (l+1)*(l+2)/2 rows
- */
-double* CINTs2c_bra_sph(double* gsph, FINT nket, double* gcart, FINT l)
-{
-    FINT nf = (l + 1) * (l + 2) / 2;
-    FINT nd = l * 2 + 1;
-    CINTdgemm_NN1(nf, nket, nd, g_c2s[l].cart2sph, gsph, gcart, nf);
-    return gcart;
-}
-double* CINTs2c_ket_sph(double* gsph, FINT nbra, double* gcart, FINT l)
-{
-    FINT nf = (l + 1) * (l + 2) / 2;
-    FINT nd = l * 2 + 1;
-    CINTdgemm_NT(nbra, nf, nd, gsph, g_c2s[l].cart2sph, gcart);
-    return gcart;
-}
+        /*
+         * Spherical to Cartesian back transformation
+         * The input gsph (Fortran contiguous) has l*2+1 rows
+         * The output gcart (Fortran contiguous) has (l+1)*(l+2)/2 rows
+         */
+        static Span<double> CINTs2c_bra_sph(Span<double> gsph, FINT nket, Span<double> gcart, FINT l)
+        {
+            FINT nf = (l + 1) * (l + 2) / 2;
+            FINT nd = l * 2 + 1;
+            CINTdgemm_NN1(nf, nket, nd, g_c2s[l].cart2sph, gsph, gcart, nf);
+            return gcart;
+        }
+        static Span<double> CINTs2c_ket_sph(Span<double> gsph, FINT nbra, Span<double> gcart, FINT l)
+        {
+            FINT nf = (l + 1) * (l + 2) / 2;
+            FINT nd = l * 2 + 1;
+            CINTdgemm_NT(nbra, nf, nd, gsph, g_c2s[l].cart2sph, gcart);
+            return gcart;
+        }
 
     }
 }

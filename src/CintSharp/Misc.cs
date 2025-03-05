@@ -10,8 +10,7 @@ namespace CintSharp
 {
     internal static class Misc
     {
-        public static void MALLOC_INSTACK<TFrom, TTo>(scoped ref Span<TFrom> buffer, out Span<TTo> split, int n)
-            where TFrom : unmanaged
+        public static void MALLOC_INSTACK<TTo>(scoped ref Span<double> buffer, out Span<TTo> split, int n)
             where TTo : unmanaged
         {
             Span<byte> bytesBuffer = MemoryMarshal.AsBytes(buffer);
@@ -23,7 +22,7 @@ namespace CintSharp
             }
             split = MemoryMarshal.Cast<byte, TTo>(bytesBuffer[..spaceToUse]);
             bytesBuffer = bytesBuffer[spaceToUse..];
-            buffer = MemoryMarshal.Cast<byte, TFrom>(bytesBuffer);
+            buffer = MemoryMarshal.Cast<byte, double>(bytesBuffer);
         }
     }
 }
