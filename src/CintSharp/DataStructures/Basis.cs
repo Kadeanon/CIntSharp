@@ -12,14 +12,19 @@ using System.Threading.Tasks;
 
 namespace CintSharp.DataStructures
 {
+    /// <summary>
+    /// A dictionary of basis sets.
+    /// </summary>
+    /// <param name="parser">A <see cref="IBasisParser"/> instance to parse basis sets.</param>
+    /// <param name="rawList"></param>
     public class BasisDict(IBasisParser parser, List<double> rawList)
     {
 
-        internal Dictionary<BasisKey, Shells> rawDict = [];
+        internal IBasisParser DataParser { get; } = parser;
 
-        internal IBasisParser dataParser = parser;
+        internal List<double> RawList { get; } = rawList;
 
-        internal List<double> rawList = rawList;
+        internal Dictionary<BasisKey, Shells> RawDict { get; } = [];
 
         public Shells this[BasisKey key]
         {
@@ -27,18 +32,25 @@ namespace CintSharp.DataStructures
             set => Set(key, value);
         }
 
+        public Shells this[string basisName, int atomNumber]
+        {
+            get => Get(new(basisName, atomNumber));
+            set => Set(new(basisName, atomNumber), value);
+        }
+
         public bool TryAdd(BasisKey key, [NotNullWhen(true)] out Shells? entry) 
         {
-            if (rawDict.TryGetValue(key, out entry))
+            if (RawDict.TryGetValue(key, out entry))
             {
                 return true;
             }
+
             try
             {
-                entry = AddUnChecked(key);
+                entry = AddUnchecked(key);
                 return true;
             }
-            catch (ArgumentException) 
+            catch (Exception) 
             {
                 entry = null;
                 return false; 
@@ -47,41 +59,41 @@ namespace CintSharp.DataStructures
 
         public Shells Add(BasisKey key)
         {
-            if (rawDict.TryGetValue(key, out Shells? entry))
+            if (RawDict.TryGetValue(key, out Shells? entry))
             {
                 return entry;
             }
             try
             {
-                return AddUnChecked(key);
+                return AddUnchecked(key);
             }
-            catch (ArgumentException)
+            catch (Exception e)
             {
                 throw new ArgumentException
-                    ($"Failed to add basis {key.BasisName} for atom {key.AtomNumber}");
+                    ($"Failed to add basis {key.BasisName} for atom {key.AtomNumber}", e);
             }
         }
 
         public bool ContainsKey(BasisKey key)
         {
-            return rawDict.ContainsKey(key);
+            return RawDict.ContainsKey(key);
         }
 
         public bool ContainsKey(string basisName, int atomNumber)
         {
-            return rawDict.ContainsKey(new(basisName, atomNumber));
+            return RawDict.ContainsKey(new(basisName, atomNumber));
         }
 
         Shells Get(BasisKey key)
         {
-            if (rawDict.TryGetValue(key, out Shells? entry))
+             if (RawDict.TryGetValue(key, out Shells? entry))
             {
                 return entry;
             }
             try 
             {
-                entry = dataParser.ParseBasis(key, rawList);
-                rawDict.Add(key, entry);
+                entry = DataParser.ParseBasis(key, RawList);
+                RawDict.Add(key, entry);
                 return entry;
             }
             catch(Exception e) 
@@ -92,52 +104,27 @@ namespace CintSharp.DataStructures
 
         void Set(BasisKey key, Shells entry)
         {
-            rawDict[key] = entry;
+            RawDict[key] = entry;
         }
 
-        Shells AddUnChecked(BasisKey key)
+        Shells AddUnchecked(BasisKey key)
         {
-            var entry = dataParser.ParseBasis(key, rawList);
-            rawDict.Add(key, entry);
+            var entry = DataParser.ParseBasis(key, RawList);
+            RawDict.Add(key, entry);
             return entry;
         }
 
-
-        public readonly struct BasisKey(string basisName, int atomNumber) : IEquatable<BasisKey>
+    }
+    public record struct BasisKey(string BasisName, int AtomNumber) : IEquatable<BasisKey>
+    {
+        public readonly bool Equals(BasisKey other)
         {
-            public string BasisName { get; } = basisName;
+            return BasisName == other.BasisName && AtomNumber == other.AtomNumber;
+        }
 
-            public int AtomNumber { get; } = atomNumber;
-
-            public readonly bool Equals(BasisKey other)
-            {
-                return BasisName == other.BasisName && AtomNumber == other.AtomNumber;
-            }
-
-            public override readonly bool Equals(object? obj)
-            {
-                return obj is BasisKey other && Equals(other);
-            }
-
-            public override readonly int GetHashCode()
-            {
-                return HashCode.Combine(AtomNumber, BasisName);
-            }
-
-            public static bool operator ==(BasisKey left, BasisKey right)
-            {
-                return left.Equals(right);
-            }
-
-            public static bool operator !=(BasisKey left, BasisKey right)
-            {
-                return !left.Equals(right);
-            }
-
-            public static implicit operator BasisKey(Atom atom)
-            {
-                return new(atom.BasisName, atom.AtomNumber);
-            }
+        public override readonly int GetHashCode()
+        {
+            return HashCode.Combine(AtomNumber, BasisName);
         }
     }
 }

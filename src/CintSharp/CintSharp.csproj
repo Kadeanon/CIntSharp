@@ -26,5 +26,10 @@
 	<ItemGroup>
 	  <EmbeddedResource Include="Basis\*.json" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="Test\**" />
+	  <EmbeddedResource Remove="Test\**" />
+	  <None Remove="Test\**" />
+	</ItemGroup>
 	
 </Project>

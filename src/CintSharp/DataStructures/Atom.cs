@@ -16,8 +16,6 @@ namespace CintSharp.DataStructures
 
         public ChemicalElement Element { get; }
 
-        public string BasisName { get; set; }
-
         public double X 
         { 
             readonly get => position.X; 
@@ -38,20 +36,19 @@ namespace CintSharp.DataStructures
 
         public readonly int AtomNumber => Element.AtomicNumber;
 
-        public Atom(ChemicalElement element, double x, double y, double z, string basisName = "")
+        public Atom(ChemicalElement element, double x, double y, double z)
         {
             Element = element;
             X = x;
             Y = y;
             Z = z;
-            BasisName = basisName;
         }
 
-        public Atom(int atomNumber, double x, double y, double z, string basisName = "")
-            : this(AtomicNumberToElement(atomNumber), x, y, z, basisName) { }
+        public Atom(int atomNumber, double x, double y, double z)
+            : this(AtomicNumberToElement(atomNumber), x, y, z) { }
 
-        public Atom(string atomSymbol, double x, double y, double z, string basisName = "")
-            : this(SymbolToElement(atomSymbol), x, y, z, basisName) { }
+        public Atom(string atomSymbol, double x, double y, double z)
+            : this(SymbolToElement(atomSymbol), x, y, z) { }
 
         public void CopyToAtm(ref Atm atm, List<double> envs)
         {

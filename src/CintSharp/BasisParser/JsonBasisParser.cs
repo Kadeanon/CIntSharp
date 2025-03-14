@@ -23,6 +23,7 @@ namespace CintSharp.BasisParser
         public BasisStreamSlover? CustomBasisStreamSlover { get; set; }
             = CustomBasisStreamSlover;
 
+#pragma warning disable CS8602 // 解引用可能出现空引用。
         void LoadBasisFile(string basisName)
         {
             if(basisName == "")
@@ -34,28 +35,16 @@ namespace CintSharp.BasisParser
             {
                 return;
             }
-            JsonNode? jsonNode;
-            Stream stream = FindBasisFileStream(basisName);
-            if (stream == null)
-            {
-                throw new ArgumentException($"Failed to open basis {basisName}: basis file not found.");
-            }
+            
             try
             {
-                jsonNode = JsonNode.Parse(stream);
+                Stream stream = FindBasisFileStream(basisName);
+                CurrentJObj = JsonNode.Parse(stream)["elements"].AsObject()!;
             }
             catch (Exception e)
             {
-                throw new ArgumentException($"Failed to open basis {basisName}: {e.Message}");
+                throw new ArgumentException($"Failed to open basis {basisName}: {e.Message}", e);
             }
-
-            jsonNode = jsonNode?["elements"]??throw new ArgumentException($"Failed to open basis {basisName}: elements not found");
-            
-            if (jsonNode is not JsonObject jsonObj)
-            {
-                throw new ArgumentException($"Failed to open basis {basisName}: elements is not an object");
-            }
-            CurrentJObj = jsonObj;
             BasisName = basisName;
         }
 
@@ -68,22 +57,20 @@ namespace CintSharp.BasisParser
                 throw new ArgumentException($"Basis file {name} not found");
         }
 
-        public Shells ParseBasis(BasisDict.BasisKey key, List<double> envs)
+        public Shells ParseBasis(BasisKey key, List<double> envs)
         {
             var basisName = key.BasisName;
             var atomNumber = key.AtomNumber;
             LoadBasisFile(basisName);
-            var atomShells = CurrentJObj?[atomNumber.ToString()]["electron_shells"] as JsonArray
-                ?? throw new ArgumentException
-                ($"Failed to open basis {basisName}: electron_shells not found for atom {atomNumber}");
+            var atomShells = CurrentJObj[atomNumber.ToString()]["electron_shells"].AsArray();
             var shells = new Shells();
 
             for (int layerIndex = 0; layerIndex < atomShells.Count; layerIndex++)//电子层,一个电子层可以包含libcint中的多个shell，例如sp层包括一个s轨道和一组p轨道（这组p轨道轨道共同构成一个libcint中的一个shell，简称shl）
             {
                 var layer = atomShells[layerIndex];
-                var mulShellCoefsJArray = layer["coefficients"] as JsonArray;//每个角动量对应一套系数，同时对应一个shl
+                var mulShellCoefsJArray = layer["coefficients"].AsArray();//每个角动量对应一套系数，同时对应一个shl
 
-                var expsJArray = layer["exponents"] as JsonArray;//同一电子层的不同shell共用一套指数
+                var expsJArray = layer["exponents"].AsArray();//同一电子层的不同shell共用一套指数
 
                 double[] exps = new double[expsJArray.Count];
                 for (int i = 0; i < exps.Length; i++)
@@ -93,10 +80,10 @@ namespace CintSharp.BasisParser
 
                 for (int shellIndex = 0; shellIndex < mulShellCoefsJArray.Count; shellIndex++)//shell
                 {
-                    JsonArray coefsJArray = mulShellCoefsJArray[shellIndex] as JsonArray;
+                    JsonArray coefsJArray = mulShellCoefsJArray[shellIndex].AsArray();
                     double[] coefs = new double[coefsJArray.Count];
-                    JsonArray angJArray = layer["angular_momentum"] as JsonArray;
-                    int angMomentum = (int)angJArray[shellIndex];//壳层劈裂时每个系数具有自己对应的角动量
+                    JsonArray angJArray = layer["angular_momentum"].AsArray();
+                    int angMomentum = angJArray[shellIndex].GetValue<int>();//壳层劈裂时每个系数具有自己对应的角动量
 
                     for (int i = 0; i < coefs.Length; i++)
                     {
@@ -109,6 +96,7 @@ namespace CintSharp.BasisParser
                     shells.Add(shell);
                 }
             }
+#pragma warning restore CS8602 // 解引用可能出现空引用。
 
             return shells;
         }

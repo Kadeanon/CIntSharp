@@ -1,0 +1,514 @@
+﻿using CintSharp.DataStructures;
+using CintSharp.Intor;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Statistics;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics.Tensors;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CintSharp.Examples.GradRHF;
+
+internal class GradRHF
+{
+    public RHF RHF { get; set; }
+
+    public double Energy { get; set; }
+
+    public Tensor<double> Force { get; set; }
+
+    public Tensor<double> OverlapDerivative { get; private set; }
+    public Tensor<double> HamiltonianDerivative { get; private set; }
+    public Tensor<double> EriDerivative { get; private set; }
+    public Tensor<double> ElecEnergyDerivative { get; private set; }
+    public Tensor<double> NuclearRepulsionDerivative { get; private set; }
+    public Tensor<double> OverlapDerivativeMO { get; private set; }
+
+    public GradRHF(List<Atom> atoms, string basisName)
+    {
+        RHF = new RHF(atoms, basisName);
+        Energy = RHF.Run();
+        var length = Natm * 3;
+        Force = Tensor.CreateUninitialized<double>([length]);
+        OverlapDerivative = Tensor.Create<double>([length, Nao, Nao]);
+        HamiltonianDerivative = Tensor.Create<double>([length, Nao, Nao]);
+        EriDerivative = Tensor.Create<double>([length, this.Nao, this.Nao, this.Nao, this.Nao]);
+        ElecEnergyDerivative = Tensor.Create<double>([length]);
+        NuclearRepulsionDerivative = Tensor.Create<double>([length]);
+        OverlapDerivativeMO = Tensor.Create<double>([length, this.Nao, this.Nao]);
+    }
+
+    public GradRHF(RHF rhf)
+    {
+        RHF = rhf;
+        Energy = rhf.TotalEnergy;
+        var length = Natm * 3;
+        Force = Tensor.CreateUninitialized<double>([length]);
+        OverlapDerivative = Tensor.Create<double>([length, Nao, Nao]);
+        HamiltonianDerivative = Tensor.Create<double>([length, Nao, Nao]);
+        EriDerivative = Tensor.Create<double>([length, this.Nao, this.Nao, this.Nao, this.Nao]);
+        ElecEnergyDerivative = Tensor.Create<double>([length]);
+        NuclearRepulsionDerivative = Tensor.Create<double>([length]);
+        OverlapDerivativeMO = Tensor.Create<double>([length, this.Nao, this.Nao]);
+    }
+
+    public Tensor<double> Run()
+    {
+        CalculateForce();
+        return Force;
+    }
+
+    public int Nao => RHF.Envs.NAO;
+
+    public int Natm => RHF.Envs.Natm;
+
+    public void CalculateForce()
+    {
+        #region prepare
+        CIntEnvs mol = RHF.Envs;
+        var fock = Matrix2Tensor(RHF.FockMatrix);
+        var coeff = Matrix2Tensor(RHF.C);
+        var density = Matrix2Tensor(RHF.P);
+        var nocc = RHF.Atoms.Sum(atm => atm.AtomNumber) / 2;
+        var so = new Range(0, nocc);
+        var ac = RHF.Atoms.Select(atm => atm.position).ToArray();
+        var nao = Nao;
+        var length = Natm * 3;
+
+        var int1e_ipovlp = mol.InvokeIntor("int1e_ipovlp");
+        var int1e_ipkin = mol.InvokeIntor("int1e_ipkin");
+        var int1e_ipnucl = mol.InvokeIntor("int1e_ipnuc");
+        var z_a = RHF.Atoms.Select(atm => atm.AtomNumber).ToArray();
+        var int1e_core = Tensor.Add<double>(int1e_ipkin, int1e_ipnucl);
+
+
+        #endregion
+
+        #region overlapDerivativ and hamiltonianDerivative
+        for (var iatm = 0; iatm < Natm; iatm++)
+        {
+            var sa = mol.EnumerateByAtom(iatm);
+            using (mol.RinvAt(iatm))
+            {
+                Tensor<double> int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
+                for (int idim = 0; idim < 3; idim++)
+                {
+                    int totalDim = iatm * 3 + idim;
+                    for (var k = 0; k < nao; k++)
+                    {
+                        foreach (var j in sa)
+                        {
+                            double value = int1e_ipovlp[idim, j, k];
+                            OverlapDerivative[totalDim, j, k] -= value;
+                            OverlapDerivative[totalDim, k, j] -= value;
+                            value = int1e_core[idim, j, k];
+                            HamiltonianDerivative[totalDim, j, k] -= value;
+                            HamiltonianDerivative[totalDim, k, j] -= value;
+                        }
+                        for (int j = 0; j < nao; j++)
+                        {
+                            double value = z_a[iatm] * int1e_iprinv[idim, j, k];
+                            HamiltonianDerivative[totalDim, j, k] -= value;
+                            HamiltonianDerivative[totalDim, k, j] -= value;
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region eriDerivative
+        var int2e_ip1 = mol.InvokeIntor("int2e_ip1");
+        for (var iatm = 0; iatm < Natm; iatm++)
+        {
+            var sa = mol.EnumerateByAtom(iatm);
+            for (int idim = 0; idim < 3; idim++)
+            {
+                int totalDim = iatm * 3 + idim;
+                for (var i = 0; i < nao; i++)
+                {
+                    for (var j = 0; j < nao; j++)
+                    {
+                        for (var k = 0; k < nao; k++)
+                        {
+                            foreach (var s in sa)
+                            {
+                                EriDerivative[totalDim, s, i, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                EriDerivative[totalDim, i, s, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                EriDerivative[totalDim, i, j, s, k] -= int2e_ip1[idim, s, k, i, j];
+                                EriDerivative[totalDim, i, j, k, s] -= int2e_ip1[idim, s, k, i, j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region electronicEnergyDerivative
+        var fock_mo = AO2MO(coeff, fock);
+        Span<NRange> ranges = [NRange.All, NRange.All, NRange.All];
+        OverlapDerivativeMO[.., .., ..] = AO2MO(coeff, OverlapDerivative);
+        var sub1 = Tensor.Create<double>([length]);
+        var sub2 = Tensor.Create<double>([length]);
+        var sub3 = Tensor.Create<double>([length]);
+        var sub4 = Tensor.Create<double>([length]);
+        for (int t = 0; t < length; t++)
+        {
+            double it = 0;
+            for (int i = 0; i < nao; i++)
+            {
+                for (int j = 0; j < nao; j++)
+                {
+                    it += HamiltonianDerivative[t, i, j] * density[i, j];
+                }
+            }
+            ElecEnergyDerivative[t] += it;
+        }
+
+        var uv = density;
+        var kl = density;
+        var dkl = Tensor.Create<double>([Nao, Nao]);
+        for (int d = 0; d < length; d++)
+        {
+            var duvkl = EriDerivative;
+            for (int k = 0; k < Nao; k++)
+            {
+                for (int l = 0; l < Nao; l++)
+                {
+                    double idkl = 0;
+                    for (int u = 0; u < Nao; u++)
+                    {
+                        for (int v = 0; v < Nao; v++)
+                        {
+                            idkl += duvkl[d, u, v, k, l] * uv[u, v];
+                        }
+                    }
+                    dkl[k, l] = idkl;
+                }
+            }
+            double id = 0;
+            for (int k = 0; k < Nao; k++)
+            {
+                for (int l = 0; l < Nao; l++)
+                {
+                    id += kl[k, l] * dkl[k, l];
+                }
+            }
+            ElecEnergyDerivative[d] += id / 2;
+        }
+        var dukvl = EriDerivative;
+        dkl = Tensor.Create<double>([length, Nao, Nao]);
+        for (int d = 0; d < length; d++)
+        {
+            for (int k = 0; k < Nao; k++)
+            {
+                for (int l = 0; l < Nao; l++)
+                {
+                    double idkl = 0;
+                    for (int u = 0; u < Nao; u++)
+                    {
+                        for (int v = 0; v < Nao; v++)
+                        {
+                            idkl += dukvl[d, u, k, v, l] * uv[u, v];
+                        }
+                    }
+                    dkl[d, k, l] = idkl;
+                }
+            }
+        }
+        for (int d = 0; d < length; d++)
+        {
+            double id = 0;
+            for (int k = 0; k < Nao; k++)
+            {
+                for (int l = 0; l < Nao; l++)
+                {
+                    id += kl[k, l] * dkl[d, k, l];
+                }
+            }
+            ElecEnergyDerivative[d] -= id / 4;
+        }
+        var dij = OverlapDerivativeMO;
+        var ij = fock_mo;
+        for (int d = 0; d < length; d++)
+        {
+            double id = 0;
+            for (int i = 0; i < nocc; i++)
+            {
+                for (int j = 0; j < nocc; j++)
+                {
+                    id += dij[d, i, j] * ij[i, j];
+                }
+            }
+            ElecEnergyDerivative[d] -= id * 2;
+        }
+        PrintForce(ElecEnergyDerivative);
+        #endregion
+
+        #region nuclear repulsion derivative
+        for (var iatm = 0; iatm < Natm; iatm++)
+        {
+            var z_i = z_a[iatm];
+            var coor_i = ac[iatm];
+            for (int idim = 0; idim < 3; idim++)
+            {
+                int totalDim = iatm * 3 + idim;
+                double value = 0;
+                for (var jatm = 0; jatm < Natm; jatm++)
+                {
+                    if (jatm == iatm)
+                    {
+                        continue;
+                    }
+
+                    var z_j = z_a[jatm];
+                    var coor_j = ac[jatm];
+                    var coor = coor_i - coor_j;
+                    var coorSpan = coor.AsSpan();
+                    var z_ij = z_i * z_j;
+                    value -= z_ij * coorSpan[idim] / Math.Pow(coor.Length, 3);
+                }
+
+                NuclearRepulsionDerivative[totalDim] = value;
+            }
+        }
+        PrintRMS(NuclearRepulsionDerivative, nameof(NuclearRepulsionDerivative));
+        #endregion
+
+        for (int i = 0; i < Natm * 3; i++)
+        {
+            Force[i] = ElecEnergyDerivative[i] + NuclearRepulsionDerivative[i];
+        }
+        PrintForce(Force);
+    }
+
+    private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, Tensor<double> getter)
+    {
+        var dims = getter.Lengths;
+        if (moCoeffs.Rank != 2)
+        {
+            throw new ArgumentException("The input matrix must be 2D.");
+        }
+        nint length = moCoeffs.Lengths[0];
+        if (length != moCoeffs.Lengths[1])
+        {
+            throw new ArgumentException("The input matrix must be square.");
+        }
+        for (var idim = 0; idim < dims.Length; idim++)
+        {
+            var dim = dims[idim];
+            if (dims.Length == 3 && idim == 0)
+            {
+                continue;
+            }
+            if (dim != length)
+            {
+                throw new ArgumentException("The input matrix must have the same size as the moCoeffs.");
+            }
+        }
+        Tensor<double> temp1 = Tensor.Create<double>(dims);
+        Tensor<double> temp2 = Tensor.Create<double>(dims);
+
+        switch (dims.Length)
+        {
+            case 2:
+                {
+                    var uv = getter;
+                    var up = moCoeffs;
+                    var pv = temp1;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int v = 0; v < length; v++)
+                        {
+                            var ipv = 0.0;
+                            for (int u = 0; u < length; u++)
+                            {
+                                ipv += uv[u, v] * up[u, p];
+                            }
+                            pv[p, v] = ipv;
+                        }
+                    }
+                    var vq = moCoeffs;
+                    var pq = temp2;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int q = 0; q < length; q++)
+                        {
+                            var ipq = 0.0;
+                            for (int v = 0; v < length; v++)
+                            {
+                                ipq += pv[p, v] * vq[v, q];
+                            }
+                            pq[p, q] = ipq;
+                        }
+                    }
+                    return pq;
+                }
+            case 3:
+                {
+
+                    var duv = getter;
+                    var up = moCoeffs;
+                    var dpv = temp1;
+                    for (nint idim = 0; idim < getter.Lengths[0]; idim++)
+                    {
+                        for (int p = 0; p < length; p++)
+                        {
+                            for (int v = 0; v < length; v++)
+                            {
+                                var idpv = 0.0;
+                                for (int u = 0; u < length; u++)
+                                {
+                                    idpv += duv[idim, u, v] * up[u, p];
+                                }
+                                dpv[idim, p, v] = idpv;
+                            }
+                        }
+                    }
+                    var vq = moCoeffs;
+                    var dpq = temp2;
+                    for (nint idim = 0; idim < getter.Lengths[0]; idim++)
+                    {
+                        for (int p = 0; p < length; p++)
+                        {
+                            for (int q = 0; q < length; q++)
+                            {
+                                var idpq = 0.0;
+                                for (int v = 0; v < length; v++)
+                                {
+                                    idpq += dpv[idim, p, v] * vq[v, q];
+                                }
+                                dpq[idim, p, q] = idpq;
+                            }
+                        }
+                    }
+                    return dpq;
+                }
+            case 4:
+                {
+                    var uvkl = getter;
+                    var up = moCoeffs;
+                    var pvkl = temp1;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int v = 0; v < length; v++)
+                        {
+                            for (int k = 0; k < length; k++)
+                            {
+                                for (int l = 0; l < length; l++)
+                                {
+                                    var ipvkl = 0.0;
+                                    for (int u = 0; u < length; u++)
+                                    {
+                                        ipvkl += uvkl[u, v, k, l] * up[u, p];
+                                    }
+                                    pvkl[p, v, k, l] = ipvkl;
+                                }
+                            }
+                        }
+                    }
+                    var vq = moCoeffs;
+                    var pqkl = temp2;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int q = 0; q < length; q++)
+                        {
+                            for (int k = 0; k < length; k++)
+                            {
+                                for (int l = 0; l < length; l++)
+                                {
+                                    var ipqkl = 0.0;
+                                    for (int v = 0; v < length; v++)
+                                    {
+                                        ipqkl += pvkl[p, v, k, l] * vq[v, q];
+                                    }
+                                    pqkl[p, q, k, l] = ipqkl;
+                                }
+                            }
+                        }
+                    }
+                    var kr = moCoeffs;
+                    var pqrl = temp1;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int q = 0; q < length; q++)
+                        {
+                            for (int r = 0; r < length; r++)
+                            {
+                                for (int l = 0; l < length; l++)
+                                {
+                                    var ipqrl = 0.0;
+                                    for (int k = 0; k < length; k++)
+                                    {
+                                        ipqrl += pqkl[p, q, k, l] * kr[k, r];
+                                    }
+                                    pqrl[p, q, r, l] = ipqrl;
+                                }
+                            }
+                        }
+                    }
+                    var ls = moCoeffs;
+                    var pqrs = temp2;
+                    for (int p = 0; p < length; p++)
+                    {
+                        for (int q = 0; q < length; q++)
+                        {
+                            for (int r = 0; r < length; r++)
+                            {
+                                for (int s = 0; s < length; s++)
+                                {
+                                    var ipqrs = 0.0;
+                                    for (int l = 0; l < length; l++)
+                                    {
+                                        ipqrs += pqrl[p, q, r, l] * ls[l, s];
+                                    }
+                                    pqrs[p, q, r, s] = ipqrs;
+                                }
+                            }
+                        }
+                    }
+                    return pqrs;
+                }
+            default:
+                throw new ArgumentException("The input matrix must be 2D or 4D.");
+        }
+    }
+
+    private Tensor<double> Matrix2Tensor(Matrix<double> matrix)
+    {
+        Tensor<double> tensor = Tensor.CreateUninitialized<double>([matrix.RowCount, matrix.ColumnCount]);
+        for (int i = 0; i < matrix.RowCount; i++)
+        {
+            for (int j = 0; j < matrix.ColumnCount; j++)
+            {
+                tensor[i, j] = matrix[i, j];
+            }
+        }
+        return tensor;
+    }
+
+    private void PrintForce(Tensor<double> force)
+    {
+        StringBuilder sb = new();
+        for (int i = 0; i < Natm; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                sb.Append($"{force[i * 3 + j]:F6} ");
+            }
+            sb.AppendLine();
+        }
+        Console.WriteLine(sb.ToString());
+    }
+
+    private void PrintRMS(Tensor<double> tensor, string name, double factor = 1)
+        => Console.WriteLine($"Summary_{name}:{StreamingStatistics.RootMeanSquare(tensor) * factor}," +
+$"{Tensor.Sum<double>(Tensor.Abs<double>(tensor)) * factor}");
+}

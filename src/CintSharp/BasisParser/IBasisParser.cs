@@ -10,8 +10,9 @@ namespace CintSharp.BasisParser
 {
     public interface IBasisParser
     {
-        Shells ParseBasis(BasisDict.BasisKey key, List<double> envs);
-        bool TryParseBasis(BasisDict.BasisKey key, List<double> envs, [NotNullWhen(true)]out Shells? entry) 
+        Shells ParseBasis(BasisKey key, List<double> envs);
+
+        bool TryParseBasis(BasisKey key, List<double> envs, [NotNullWhen(true)]out Shells? entry) 
         {
             try 
             {

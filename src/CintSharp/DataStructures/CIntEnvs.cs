@@ -46,7 +46,7 @@ namespace CintSharp.DataStructures
             NAO = lengthByShells.Sum();
         }
 
-        public static CIntEnvs Create(List<Atom> atoms, Func<Atom, string> basisNameSetter, IBasisParser parser = null) 
+        public static CIntEnvs Create(List<Atom> atoms, Func<Atom, string> basisNameSetter, IBasisParser? parser = null) 
             => new EnvBuilder(atoms, parser).SetBasis(basisNameSetter).Build();
 
         public IntorBase CreateIntor(string intorName) 
