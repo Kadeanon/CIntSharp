@@ -74,6 +74,7 @@ namespace CintSharp.Intor
                                                     lengthI * lengthJ * k2 +
                                                     lengthI * lengthJ * lengthK * l2 +
                                                     lengthI * lengthJ * lengthK * lengthL * c];
+
                                             }
                                         }
                                     }
