@@ -16,7 +16,7 @@ namespace CintSharp.Intor
     {
         public Intor1e(CIntEnvs envs, string intorName) : base(envs, intorName)
         {
-            if (type != IntorUtils.IntorType.Spheric)
+            if (type != IntorType.Spheric)
             {
                 throw new ArgumentException($"The intor type of {intorName} is not spheric.");
             }

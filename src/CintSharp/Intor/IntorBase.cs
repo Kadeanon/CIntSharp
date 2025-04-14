@@ -11,22 +11,62 @@ using System.Threading.Tasks;
 
 namespace CintSharp.Intor
 {
+    /// <summary>
+    /// A base class for all integrals.
+    /// Inherit this class to create a kind of new integral.
+    /// And implement the <see cref="Invoke"/> method to get the result.
+    /// Check <seealso cref="Intor1e"/> and <seealso cref="Intor2e"/> for examples.
+    /// </summary>
     public abstract class IntorBase : IDisposable
     {
+        /// <summary>
+        /// The <see cref="CIntEnvs"/> object that contains the params and some precompute properties.
+        /// </summary>
         protected CIntEnvs Envs { get; }
+
+        /// <summary>
+        /// A flag to indicate whether the optimizer should be used.
+        /// </summary>
         private bool ShouldOptimize { get; }
 
+        /// <summary>
+        /// The name of the integral without the suffix "_sph/_cart/spin". 
+        /// It will be used to call the corresponding integral function in the libcint library.
+        /// Add suffix to it manually to get the complete integrator name.
+        /// </summary>
         protected string IntorName { get; }
+
+
         private nint optimizer;
 
+        /// <summary>
+        /// The optimizer pointer that can be used to optimize the integral calculation.
+        /// Only be used when the <seealso cref="ShouldOptimize"/> is <see cref="true"/>.
+        /// </summary>
         protected nint Optimizer => optimizer;
 
+        /// <summary>
+        /// The number of components of the integral.
+        /// Used to determine the shape of the result tensor as gradient intor.
+        /// </summary>
         protected int Components { get; }
 
-        protected IntorUtils.IntorType type;
+        /// <summary>
+        /// The type of the integral.
+        /// For now, it has only been implemented for the spheric type.
+        /// </summary>
+        protected IntorType type;
+
         private bool disposedValue;
 
-        public IntorBase(CIntEnvs envs, string intorName, bool shouldOpt = true)
+        /// <summary>
+        /// Create a new integral object.
+        /// </summary>
+        /// <param name="envs">The <see cref="CIntEnvs"/> object to integrate.</param>
+        /// <param name="intorName">The intor name, can</param>
+        /// <param name="shouldOpt"></param>
+        /// <exception cref="ArgumentException"></exception>
+        protected IntorBase(CIntEnvs envs, string intorName, bool shouldOpt = true)
         {
             Components = IntorUtils.GetIntorComp(ref intorName, out type);
             if(Components == 0)
@@ -42,6 +82,10 @@ namespace CintSharp.Intor
             }
         }
 
+        /// <summary>
+        /// Invoke the integral calculation.
+        /// </summary>
+        /// <returns>The <see cref="Tensor{double}"/> result that .</returns>
         public abstract Tensor<double> Invoke();
 
         protected virtual void Dispose(bool disposing)

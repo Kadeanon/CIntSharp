@@ -9,6 +9,14 @@ using System.Threading.Tasks;
 
 namespace CintSharp.Intor
 {
+
+    public enum IntorType
+    {
+        Cartesian,
+        Spheric,
+        Spinor
+    }
+
     public static partial class IntorUtils
     {
         public static readonly Dictionary<string, (int comp4Scalar, int comp4Spinor)> intorDict = new()
@@ -197,13 +205,6 @@ namespace CintSharp.Intor
             {"ECPscalar_iprinvip", (9, 0)},
             {"ECPso", (3, 1)}
         };
-
-        public enum IntorType
-        {
-            Cartesian,
-            Spheric,
-            Spinor
-        }
 
         public static int GetIntorComp(ref string intorName, out IntorType type)
         {
