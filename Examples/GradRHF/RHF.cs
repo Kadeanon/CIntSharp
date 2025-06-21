@@ -14,7 +14,6 @@ namespace CintSharp.Examples.GradRHF;
 
 internal class RHF
 {
-
     public List<Atom> Atoms { get; }
 
     public CIntEnvs Envs { get; }
@@ -68,7 +67,7 @@ internal class RHF
             double result = ElectronicEnergy;
             for (int i = 0; i < Atoms.Count; i++)
             {
-                for (int j = i + 1; j < Atoms.Count(); j++)
+                for (int j = i + 1; j < Atoms.Count; j++)
                 {
                     var a = Atoms[i];
                     var b = Atoms[j];

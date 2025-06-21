@@ -55,31 +55,10 @@ namespace CintSharp.Intor
                             int lengthL = shellLength[l];
                             dims[3] = lengthL;
                             shls[3] = l;
-                            var resultChunk = result.AsTensorSpan();
                             intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
-                            resultChunk = resultChunk[.., ranges[i], ranges[j], ranges[k], ranges[l]];
-                            for (int i2 = 0; i2 < lengthI; i2++)
-                            {
-                                for (int j2 = 0; j2 < lengthJ; j2++)
-                                {
-                                    for (int k2 = 0; k2 < lengthK; k2++)
-                                    {
-                                        for (int l2 = 0; l2 < lengthL; l2++)
-                                        {
-                                            for (int c = 0; c < Components; c++)
-                                            {
-                                                resultChunk[c, i2, j2, k2, l2] = buffer[
-                                                    i2 +
-                                                    lengthI * j2 +
-                                                    lengthI * lengthJ * k2 +
-                                                    lengthI * lengthJ * lengthK * l2 +
-                                                    lengthI * lengthJ * lengthK * lengthL * c];
-
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            result[.., ranges[i], ranges[j], ranges[k], ranges[l]] =
+                                Tensor.Create(buffer, [Components, lengthL, lengthK, lengthJ, lengthI])
+                                .PermuteDimensions([0, 4, 3, 2, 1]); // Ugly, maybe.
                         }
                     }
                 }
@@ -90,7 +69,7 @@ namespace CintSharp.Intor
             ArrayPool<double>.Shared.Return(buffer);
             if (Components == 1)
             {
-                result = result.Reshape([Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO]);
+                result = result.SqueezeDimension(0);
             }
             return result;
         }

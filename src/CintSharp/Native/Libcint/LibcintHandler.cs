@@ -91,7 +91,6 @@ namespace CintSharp.Native.Libcint
             {
                 throw new InvalidOperationException("The LibcintHandler is not initialized.");
             }
-            Intor calculator;
             try
             {
                 return Instance.Invoke<Intor>(apiName); 

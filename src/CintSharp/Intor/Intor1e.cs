@@ -48,28 +48,19 @@ namespace CintSharp.Intor
                     shls[1] = j;
                     var resultChunk = result.AsTensorSpan(.., ranges[i], ranges[j]);
                     intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
-                    for (int component = 0; component < Components; component++)
-                    {
-                        for (int i2 = 0; i2 < lengthI; i2++)
-                        {
-                            for (int j2 = 0; j2 < lengthJ; j2++)
-                            {
-                                resultChunk[component, i2, j2] = buffer[
-                                    i2 +
-                                    lengthI * j2 +
-                                    lengthI * lengthJ *component];
-                            }
-                        }
-                    }
+                    result[.., ranges[i], ranges[j]] =
+                        Tensor.Create(buffer, [Components, lengthJ, lengthI])
+                        .PermuteDimensions([0, 2, 1]);// Why i can't use strides
+                                                      // directly to get the view?
                 }
             }
             ArrayPool<int>.Shared.Return(shls);
             ArrayPool<int>.Shared.Return(dims);
             ArrayPool<double>.Shared.Return(caches);
             ArrayPool<double>.Shared.Return(buffer);
-            if(Components == 1) 
+            if (Components == 1) 
             {
-                result = result.Reshape([Envs.NAO, Envs.NAO]);
+                result = result.SqueezeDimension(0);
             }
             return result;
         }

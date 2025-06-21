@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Numerics.Tensors" Version="10.0.0-preview.3.25171.5" />
+    <PackageReference Include="System.Numerics.Tensors" Version="10.0.0-preview.5.25277.114" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,11 +30,6 @@
 	  <Compile Remove="Test\**" />
 	  <EmbeddedResource Remove="Test\**" />
 	  <None Remove="Test\**" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Reference Include="DTensorExt">
-	    <HintPath>..\..\..\liuzexuan\DTensorExt\bin\Release\net9.0\DTensorExt.dll</HintPath>
-	  </Reference>
 	</ItemGroup>
 	
 </Project>

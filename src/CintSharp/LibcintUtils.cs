@@ -84,9 +84,7 @@ namespace CintSharp
 
         public static int TotCgtoAccum(Func<Bas, int> f, Bas[] bases)
         {
-            int i;
             int s = 0;
-
             foreach (var bas in bases)
             {
                 s += f(bas);
