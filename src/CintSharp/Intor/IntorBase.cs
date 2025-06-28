@@ -1,5 +1,6 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Native.Libcint;
+using SimpleHelpers.MultiAlg;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -86,7 +87,7 @@ namespace CintSharp.Intor
         /// Invoke the integral calculation.
         /// </summary>
         /// <returns>The <see cref="Tensor{double}"/> result that .</returns>
-        public abstract Tensor<double> Invoke();
+        public abstract NDArray Invoke();
 
         protected virtual void Dispose(bool disposing)
         {

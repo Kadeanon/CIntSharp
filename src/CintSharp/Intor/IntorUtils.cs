@@ -1,4 +1,5 @@
 ﻿using CintSharp.DataStructures;
+using SimpleHelpers.MultiAlg;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -235,22 +236,22 @@ namespace CintSharp.Intor
         #region Intors
 
 
-        public static Tensor<double> InvokeIntor(this CIntEnvs envs, string intorName)
+        public static NDArray InvokeIntor(this CIntEnvs envs, string intorName)
         {
             using var intor = envs.CreateIntor(intorName);
             return intor.Invoke();
         }
 
-        public static Tensor<double> GetOvlp(this CIntEnvs envs) => envs.InvokeIntor("int1e_ovlp");
+        public static NDArray GetOvlp(this CIntEnvs envs) => envs.InvokeIntor("int1e_ovlp");
 
-        public static Tensor<double> GetKin(this CIntEnvs envs) => envs.InvokeIntor("int1e_kin");
+        public static NDArray GetKin(this CIntEnvs envs) => envs.InvokeIntor("int1e_kin");
 
-        public static Tensor<double> GetNuc(this CIntEnvs envs) => envs.InvokeIntor("int1e_nuc");
+        public static NDArray GetNuc(this CIntEnvs envs) => envs.InvokeIntor("int1e_nuc");
 
-        public static Tensor<double> GetERI(this CIntEnvs envs) => envs.InvokeIntor("int2e");
+        public static NDArray GetERI(this CIntEnvs envs) => envs.InvokeIntor("int2e");
 
-        public static Tensor<double> GetHCore(this CIntEnvs envs) =>
-            Tensor.Add(envs.GetKin().AsReadOnlyTensorSpan(), envs.GetNuc());
+        public static NDArray GetHCore(this CIntEnvs envs) =>
+            envs.GetKin() + envs.GetNuc();
 
         #endregion
     }

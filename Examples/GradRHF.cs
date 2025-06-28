@@ -1,7 +1,7 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Intor;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.Statistics;
+using SimpleHelpers;
+using SimpleHelpers.MultiAlg;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CintSharp.Examples.GradRHF;
+namespace Examples;
 
 internal class GradRHF
 {
@@ -21,48 +21,35 @@ internal class GradRHF
 
     public double Energy { get; set; }
 
-    public Tensor<double> Force { get; set; }
-
-    public Tensor<double> OverlapDerivative { get; private set; }
-    public Tensor<double> HamiltonianDerivative { get; private set; }
-    public Tensor<double> EriDerivative { get; private set; }
-    public Tensor<double> ElecEnergyDerivative { get; private set; }
-    public Tensor<double> NuclearRepulsionDerivative { get; private set; }
-    public Tensor<double> OverlapDerivativeMO { get; private set; }
+    public NDArray force;
 
     public GradRHF(List<Atom> atoms, string basisName)
     {
         RHF = new RHF(atoms, basisName);
         Energy = RHF.Run();
-        var length = Natm * 3;
-        Force = Tensor.CreateUninitialized<double>([length]);
-        OverlapDerivative = Tensor.Create<double>([length, Nao, Nao]);
-        HamiltonianDerivative = Tensor.Create<double>([length, Nao, Nao]);
-        EriDerivative = Tensor.Create<double>([length, this.Nao, this.Nao, this.Nao, this.Nao]);
-        ElecEnergyDerivative = Tensor.Create<double>([length]);
-        NuclearRepulsionDerivative = Tensor.Create<double>([length]);
-        OverlapDerivativeMO = Tensor.Create<double>([length, this.Nao, this.Nao]);
+        force = NDArray.CreateUninitialized([Natm * 3]);
     }
 
     public GradRHF(RHF rhf)
     {
         RHF = rhf;
         Energy = rhf.TotalEnergy;
-        var length = Natm * 3;
-        Force = Tensor.CreateUninitialized<double>([length]);
-        OverlapDerivative = Tensor.Create<double>([length, Nao, Nao]);
-        HamiltonianDerivative = Tensor.Create<double>([length, Nao, Nao]);
-        EriDerivative = Tensor.Create<double>([length, this.Nao, this.Nao, this.Nao, this.Nao]);
-        ElecEnergyDerivative = Tensor.Create<double>([length]);
-        NuclearRepulsionDerivative = Tensor.Create<double>([length]);
-        OverlapDerivativeMO = Tensor.Create<double>([length, this.Nao, this.Nao]);
+        force = NDArray.CreateUninitialized([Natm * 3]);
     }
 
-    public Tensor<double> Run()
+    public NDArray Run()
     {
         CalculateForce();
-        return Force;
+        return force;
     }
+
+
+    public NDArray overlapDerivative;
+    public NDArray hamiltonianDerivative;
+    public NDArray eriDerivative;
+    public NDArray elecEnergyDerivative;
+    public NDArray nuclearRepulsionDerivative;
+    public NDArray overlapDerivativeMO;
 
     public int Nao => RHF.Envs.NAO;
 
@@ -71,10 +58,10 @@ internal class GradRHF
     public void CalculateForce()
     {
         #region prepare
-        CIntEnvs mol = RHF.Envs;
-        var fock = Matrix2Tensor(RHF.FockMatrix);
-        var coeff = Matrix2Tensor(RHF.C);
-        var density = Matrix2Tensor(RHF.P);
+        var mol = RHF.Envs;
+        var fock = RHF.Fock.AsNDArray();
+        var coeff = RHF.C!.AsNDArray();
+        var density = RHF.P.AsNDArray();
         var nocc = RHF.Atoms.Sum(atm => atm.AtomNumber) / 2;
         var so = new Range(0, nocc);
         var ac = RHF.Atoms.Select(atm => atm.position).ToArray();
@@ -85,18 +72,74 @@ internal class GradRHF
         var int1e_ipkin = mol.InvokeIntor("int1e_ipkin");
         var int1e_ipnucl = mol.InvokeIntor("int1e_ipnuc");
         var z_a = RHF.Atoms.Select(atm => atm.AtomNumber).ToArray();
-        var int1e_core = Tensor.Add<double>(int1e_ipkin, int1e_ipnucl);
+        double d49 = int1e_ipnucl[0, 3, 2];
+        double d20 = int1e_ipnucl[0, 2, 3];
+        double d05 = int1e_ipnucl[1, 6, 4];
+        double d54 = int1e_ipnucl[1, 5, 4];
+
+        //int1e_ipnucl[0, 2, 3] = d49;
+        //int1e_ipnucl[0, 2, 4] = d49;//
+        //int1e_ipnucl[0, 3, 2] = d20;//
+        //int1e_ipnucl[0, 4, 2] = d20;//
+        //int1e_ipnucl[1, 3, 4] = d49;//
+        //int1e_ipnucl[1, 4, 3] = d20;//
+        //int1e_ipnucl[1, 5, 4] = d05;//
+        //int1e_ipnucl[1, 6, 4] = d54;//
+        //int1e_ipnucl[2, 3, 4] = d20;//
+        //int1e_ipnucl[2, 4, 3] = d49;//
+        //int1e_ipnucl[2, 5, 3] = d54;//
+        //int1e_ipnucl[2, 6, 3] = d05;//
+        var int1e_core = int1e_ipkin + int1e_ipnucl;
 
 
         #endregion
 
         #region overlapDerivativ and hamiltonianDerivative
+        //derivatives in AO basis
+        overlapDerivative = NDArray.Create([length, nao, nao]);
+        hamiltonianDerivative = NDArray.Create([length, nao, nao]);
+        /*
+        foreach (var iatm in Enumerable.Range(0, Natm))
+        {
+            int p0 = mol.OffsetsByAtoms[iatm];
+            int p1 = mol.OffsetsByAtoms[iatm + 1];
+            NRange sa = p0..p1;
+            NRange atmDim = new NRange(iatm * 3, iatm * 3 + 3);
+            overlapDerivative[atmDim, sa, ..] = Tensor.Negate<double>(int1e_ipovlp[.., sa, ..]);
+            hamiltonianDerivative[atmDim, sa, ..] = Tensor.Negate<double>(Tensor.Add<double>(int1e_ipkin, int1e_ipnucl))[.., sa, ..];
+
+            using (mol.RinvAt(iatm))
+            {
+                var int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
+                hamiltonianDerivative[atmDim, .., ..] =
+                    Tensor.Subtract<double>(
+                        hamiltonianDerivative[atmDim, .., ..],
+                        Tensor.Multiply<double>(int1e_iprinv, z_a[iatm]));
+            }
+        }
+        Console.WriteLine(overlapDerivative.ToString());
+        Console.WriteLine(hamiltonianDerivative.ToString());
+        PrintRMS(overlapDerivative, nameof(overlapDerivative));
+        PrintRMS(hamiltonianDerivative, nameof(hamiltonianDerivative));
+        for (int i = 0; i < length; i++)
+        {
+            for (int j = 0; j < nao; j++)
+            {
+                for (int k = 0; k < nao; k++)
+                {
+                    overlapDerivative[i, j, k] += overlapDerivative[i, k, j];
+                    hamiltonianDerivative[i, j, k] += hamiltonianDerivative[i, k, j];
+                }
+            }
+        }
+        */
+        ///*
         for (var iatm = 0; iatm < Natm; iatm++)
         {
             var sa = mol.EnumerateByAtom(iatm);
             using (mol.RinvAt(iatm))
             {
-                Tensor<double> int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
+                var int1e_iprinv = mol.InvokeIntor("int1e_iprinv");
                 for (int idim = 0; idim < 3; idim++)
                 {
                     int totalDim = iatm * 3 + idim;
@@ -105,17 +148,17 @@ internal class GradRHF
                         foreach (var j in sa)
                         {
                             double value = int1e_ipovlp[idim, j, k];
-                            OverlapDerivative[totalDim, j, k] -= value;
-                            OverlapDerivative[totalDim, k, j] -= value;
+                            overlapDerivative[totalDim, j, k] -= value;
+                            overlapDerivative[totalDim, k, j] -= value;
                             value = int1e_core[idim, j, k];
-                            HamiltonianDerivative[totalDim, j, k] -= value;
-                            HamiltonianDerivative[totalDim, k, j] -= value;
+                            hamiltonianDerivative[totalDim, j, k] -= value;
+                            hamiltonianDerivative[totalDim, k, j] -= value;
                         }
                         for (int j = 0; j < nao; j++)
                         {
                             double value = z_a[iatm] * int1e_iprinv[idim, j, k];
-                            HamiltonianDerivative[totalDim, j, k] -= value;
-                            HamiltonianDerivative[totalDim, k, j] -= value;
+                            hamiltonianDerivative[totalDim, j, k] -= value;
+                            hamiltonianDerivative[totalDim, k, j] -= value;
                         }
                     }
                 }
@@ -125,6 +168,7 @@ internal class GradRHF
 
         #region eriDerivative
         var int2e_ip1 = mol.InvokeIntor("int2e_ip1");
+        eriDerivative = NDArray.Create([length, Nao, Nao, Nao, Nao]);
         for (var iatm = 0; iatm < Natm; iatm++)
         {
             var sa = mol.EnumerateByAtom(iatm);
@@ -139,10 +183,10 @@ internal class GradRHF
                         {
                             foreach (var s in sa)
                             {
-                                EriDerivative[totalDim, s, i, j, k] -= int2e_ip1[idim, s, i, j, k];
-                                EriDerivative[totalDim, i, s, j, k] -= int2e_ip1[idim, s, i, j, k];
-                                EriDerivative[totalDim, i, j, s, k] -= int2e_ip1[idim, s, k, i, j];
-                                EriDerivative[totalDim, i, j, k, s] -= int2e_ip1[idim, s, k, i, j];
+                                eriDerivative[totalDim, s, i, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                eriDerivative[totalDim, i, s, j, k] -= int2e_ip1[idim, s, i, j, k];
+                                eriDerivative[totalDim, i, j, s, k] -= int2e_ip1[idim, s, k, i, j];
+                                eriDerivative[totalDim, i, j, k, s] -= int2e_ip1[idim, s, k, i, j];
                             }
                         }
                     }
@@ -152,13 +196,15 @@ internal class GradRHF
         #endregion
 
         #region electronicEnergyDerivative
+        overlapDerivativeMO = NDArray.Create([length, Nao, Nao]);
         var fock_mo = AO2MO(coeff, fock);
         Span<NRange> ranges = [NRange.All, NRange.All, NRange.All];
-        OverlapDerivativeMO[.., .., ..] = AO2MO(coeff, OverlapDerivative);
-        var sub1 = Tensor.Create<double>([length]);
-        var sub2 = Tensor.Create<double>([length]);
-        var sub3 = Tensor.Create<double>([length]);
-        var sub4 = Tensor.Create<double>([length]);
+        overlapDerivativeMO[.., .., ..] = AO2MO(coeff, overlapDerivative);
+        elecEnergyDerivative = NDArray.Create([length]);
+        var sub1 = NDArray.Create([length]);
+        var sub2 = NDArray.Create([length]);
+        var sub3 = NDArray.Create([length]);
+        var sub4 = NDArray.Create([length]);
         for (int t = 0; t < length; t++)
         {
             double it = 0;
@@ -166,18 +212,20 @@ internal class GradRHF
             {
                 for (int j = 0; j < nao; j++)
                 {
-                    it += HamiltonianDerivative[t, i, j] * density[i, j];
+                    it += hamiltonianDerivative[t, i, j] * density[i, j];
                 }
             }
-            ElecEnergyDerivative[t] += it;
+            sub1[t] += it;
         }
+        elecEnergyDerivative = elecEnergyDerivative + sub1;
+        //sub2 = torch.einsum("duvkl,uv,kl -> d", eriDerivative, density, density);
 
         var uv = density;
         var kl = density;
-        var dkl = Tensor.Create<double>([Nao, Nao]);
+        var dkl = NDArray.Create([Nao, Nao]);
         for (int d = 0; d < length; d++)
         {
-            var duvkl = EriDerivative;
+            var duvkl = eriDerivative;
             for (int k = 0; k < Nao; k++)
             {
                 for (int l = 0; l < Nao; l++)
@@ -201,10 +249,12 @@ internal class GradRHF
                     id += kl[k, l] * dkl[k, l];
                 }
             }
-            ElecEnergyDerivative[d] += id / 2;
+            sub2[d] += id / 2;
         }
-        var dukvl = EriDerivative;
-        dkl = Tensor.Create<double>([length, Nao, Nao]);
+        elecEnergyDerivative = elecEnergyDerivative + sub2;
+        //sub3 = -torch.einsum("dukvl,uv,kl -> d", eriDerivative, density, density);
+        var dukvl = eriDerivative;
+        dkl = NDArray.Create([length, Nao, Nao]);
         for (int d = 0; d < length; d++)
         {
             for (int k = 0; k < Nao; k++)
@@ -233,9 +283,12 @@ internal class GradRHF
                     id += kl[k, l] * dkl[d, k, l];
                 }
             }
-            ElecEnergyDerivative[d] -= id / 4;
+            sub3[d] += id / 4;
         }
-        var dij = OverlapDerivativeMO;
+        elecEnergyDerivative = elecEnergyDerivative - sub3;
+        //sub4 -= torch.einsum("dij, ij -> d", overlapDerivativeMO, fock_mo);
+        //sub4 = np.einsum('atij, ij -> at', self.overlap_mo_derivative[:, :, so, so], fock_mo[so, so]) 
+        var dij = overlapDerivativeMO;
         var ij = fock_mo;
         for (int d = 0; d < length; d++)
         {
@@ -247,12 +300,15 @@ internal class GradRHF
                     id += dij[d, i, j] * ij[i, j];
                 }
             }
-            ElecEnergyDerivative[d] -= id * 2;
+            sub4[d] += id * 2;
         }
-        PrintForce(ElecEnergyDerivative);
+        elecEnergyDerivative = elecEnergyDerivative - sub4;
+        PrintForce(elecEnergyDerivative);
+        //elecEnergyDerivative = Vector2Tensor(sub1 + sub2 / 2 - sub3 / 4 - sub4 * 2);
         #endregion
 
         #region nuclear repulsion derivative
+        nuclearRepulsionDerivative = NDArray.Create([length]);
         for (var iatm = 0; iatm < Natm; iatm++)
         {
             var z_i = z_a[iatm];
@@ -276,20 +332,19 @@ internal class GradRHF
                     value -= z_ij * coorSpan[idim] / Math.Pow(coor.Length, 3);
                 }
 
-                NuclearRepulsionDerivative[totalDim] = value;
+                nuclearRepulsionDerivative[totalDim] = value;
             }
         }
-        PrintRMS(NuclearRepulsionDerivative, nameof(NuclearRepulsionDerivative));
         #endregion
 
         for (int i = 0; i < Natm * 3; i++)
         {
-            Force[i] = ElecEnergyDerivative[i] + NuclearRepulsionDerivative[i];
+            force[i] = elecEnergyDerivative[i] + nuclearRepulsionDerivative[i];
         }
-        PrintForce(Force);
+        PrintForce(force);
     }
 
-    private static Tensor<double> AO2MO(ReadOnlyTensorSpan<double> moCoeffs, Tensor<double> getter)
+    private static NDArray AO2MO(NDArray moCoeffs, NDArray getter)
     {
         var dims = getter.Lengths;
         if (moCoeffs.Rank != 2)
@@ -313,8 +368,8 @@ internal class GradRHF
                 throw new ArgumentException("The input matrix must have the same size as the moCoeffs.");
             }
         }
-        Tensor<double> temp1 = Tensor.Create<double>(dims);
-        Tensor<double> temp2 = Tensor.Create<double>(dims);
+        NDArray temp1 = NDArray.Create(dims);
+        NDArray temp2 = NDArray.Create(dims);
 
         switch (dims.Length)
         {
@@ -481,20 +536,7 @@ internal class GradRHF
         }
     }
 
-    private Tensor<double> Matrix2Tensor(Matrix<double> matrix)
-    {
-        Tensor<double> tensor = Tensor.CreateUninitialized<double>([matrix.RowCount, matrix.ColumnCount]);
-        for (int i = 0; i < matrix.RowCount; i++)
-        {
-            for (int j = 0; j < matrix.ColumnCount; j++)
-            {
-                tensor[i, j] = matrix[i, j];
-            }
-        }
-        return tensor;
-    }
-
-    private void PrintForce(Tensor<double> force)
+    private void PrintForce(NDArray force)
     {
         StringBuilder sb = new();
         for (int i = 0; i < Natm; i++)
@@ -507,8 +549,4 @@ internal class GradRHF
         }
         Console.WriteLine(sb.ToString());
     }
-
-    private void PrintRMS(Tensor<double> tensor, string name, double factor = 1)
-        => Console.WriteLine($"Summary_{name}:{StreamingStatistics.RootMeanSquare(tensor) * factor}," +
-$"{Tensor.Sum<double>(Tensor.Abs<double>(tensor)) * factor}");
 }

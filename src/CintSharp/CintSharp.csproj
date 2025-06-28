@@ -31,5 +31,8 @@
 	  <EmbeddedResource Remove="Test\**" />
 	  <None Remove="Test\**" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\SimpleHelpers\SimpleHelpers.csproj" />
+	</ItemGroup>
 	
 </Project>

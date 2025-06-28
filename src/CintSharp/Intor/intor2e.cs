@@ -1,8 +1,10 @@
 ﻿using CintSharp.DataStructures;
 using CintSharp.Native.Libcint;
+using SimpleHelpers.MultiAlg;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics.Tensors;
 using System.Runtime.InteropServices;
@@ -21,14 +23,14 @@ namespace CintSharp.Intor
             }
         }
 
-        public override Tensor<double> Invoke()
+        public override NDArray Invoke()
         {
             var intor = LibcintHandler.CreateIntor(Envs, $"{IntorName}_sph");
             var shellLength = Envs.ShellLengths;
-            int maxLength = shellLength.Max();
+            var maxLength = shellLength.Max();
             var nshl = shellLength.Length;
             var ranges = Envs.RangesByShells;
-            Tensor<double> result = Tensor.CreateUninitialized<double>([Components, Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO]);
+            var result = NDArray.CreateUninitialized([Components, Envs.NAO, Envs.NAO, Envs.NAO, Envs.NAO]);
             maxLength = maxLength * maxLength * maxLength * maxLength;
             maxLength *= Components;
             double[] caches = ArrayPool<double>.Shared.Rent(1024 * 512);
@@ -57,8 +59,12 @@ namespace CintSharp.Intor
                             shls[3] = l;
                             intor.Invoke(buffer, dims, shls, Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
                             result[.., ranges[i], ranges[j], ranges[k], ranges[l]] =
-                                Tensor.Create(buffer, [Components, lengthL, lengthK, lengthJ, lengthI])
-                                .PermuteDimensions([0, 4, 3, 2, 1]); // Ugly, maybe.
+                                new NDArray(buffer, [Components, lengthI, lengthJ, lengthK, lengthL],
+                                    [lengthI * lengthJ * lengthK * lengthL,
+                                     1,
+                                     lengthI,
+                                     lengthJ * lengthI,
+                                     lengthK * lengthJ * lengthI]);
                         }
                     }
                 }
