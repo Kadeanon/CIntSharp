@@ -56,7 +56,7 @@ namespace Examples
             var coeffs = lu.Solve(b);
             coeffs[current_index_] -= 1;
             NDArray.Axpy(coeffs[..current_size_], 
-                fock_list_[..current_size_, .., ..], fock.AsNDArray());
+                fock_list_[..current_size_], fock.AsNDArray());
 
             return fock;
         }

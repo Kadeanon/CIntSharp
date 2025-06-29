@@ -8,11 +8,11 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
 {
     internal readonly struct DoubleKernel
     {
-        public int mc => 4080;
+        public int mc => 2040;
 
-        public int nc => 256;
+        public int nc => 512;
 
-        public int kc => 72;
+        public int kc => 144;
 
         public int mr => 6;
 
