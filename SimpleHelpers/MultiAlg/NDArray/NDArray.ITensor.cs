@@ -181,8 +181,7 @@ namespace SimpleHelpers.MultiAlg
 
         public TensorSpan<double> AsTensorSpan()
         {
-            return new (
-                Data, (int)Offset, Lengths, Strides);
+            return new (Data, (int)Offset, Lengths, Strides);
         }
 
         public TensorSpan<double> AsTensorSpan(params ReadOnlySpan<nint> startIndexes)
@@ -201,7 +200,7 @@ namespace SimpleHelpers.MultiAlg
         }
 
         public void Clear()
-            => ApplySelf<IdentityOperator<double>, double>(this, 0.0);
+            => Fill(0.0);
 
         public void CopyTo(in TensorSpan<double> destination)
         {
@@ -223,12 +222,19 @@ namespace SimpleHelpers.MultiAlg
 
         public void FlattenTo(Span<double> destination)
         {
-            AsReadOnlyTensorSpan().FlattenTo(destination);
-        }
-
-        public IEnumerator<double> GetEnumerator()
-        {
-            throw new NotImplementedException();
+            if(destination.Length < Size)
+            {
+                throw new ArgumentException(
+                    "The destination span length must be " +
+                    "greater than or equal to the size of the array.",
+                    nameof(destination));
+            }
+            //TODO: more efficient way to flatten
+            int i = 0;
+            foreach (var item in this)
+            {
+                destination[i++] = item;
+            }
         }
 
         public ref double GetPinnableReference()
@@ -346,6 +352,11 @@ namespace SimpleHelpers.MultiAlg
         }
 
         ref readonly double IReadOnlyTensor<NDArray, double>.GetPinnableReference()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator<double> IEnumerable<double>.GetEnumerator()
         {
             throw new NotImplementedException();
         }

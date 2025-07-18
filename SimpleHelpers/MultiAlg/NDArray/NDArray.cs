@@ -1,5 +1,9 @@
-﻿using SimpleHelpers.MultiAlg.Helpers;
+﻿using SimpleHelpers.LinearAlg;
+using SimpleHelpers.MultiAlg.Helpers;
+using SimpleHelpers.Utilities;
 using SimpleHelpers.Utilities.Pools;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -190,11 +194,33 @@ namespace SimpleHelpers.MultiAlg
         public static NDArray CreateUninitialized(ReadOnlySpan<nint> shape)
         {
             nint length = TensorPrimitives.Product(shape);
-            if (length > Array.MaxLength)
+            long totalSize = length * 8;
+            var sizeB = totalSize % 1024;
+            totalSize /= 1024;
+            var sizeKB = totalSize % 1024;
+            totalSize /= 1024;
+            var sizeMB = totalSize % 1024;
+            totalSize /= 1024;
+            var sizeGB = totalSize;
+            if (length * 8 > Array.MaxLength)
+            {
                 throw new ArgumentOutOfRangeException(nameof(shape),
-                    "The array is too large!");
-            double[] data = GC.AllocateUninitializedArray<double>((int)length);
-            return new NDArray(data, shape);
+                    "The array is too large! It need to alloc " +
+                    $"{sizeGB} GB {sizeMB} MB {sizeKB} KB {sizeB} Byte.");
+            }
+            int size = (int)length;
+            try
+            {
+                double[] data = GC.AllocateUninitializedArray<double>(size);
+                return new NDArray(data, shape);
+            }
+            catch(Exception e)
+            {
+                throw new ArgumentOutOfRangeException(
+                    "The array is too large! It need to alloc " +
+                    $"{sizeGB} GB {sizeMB} MB {sizeKB} KB {sizeB} Byte.",
+                    innerException: e);
+            }
         }
 
         public static NDArray Create(params ReadOnlySpan<nint> shape)
@@ -329,7 +355,161 @@ namespace SimpleHelpers.MultiAlg
             .AppendLine($"Memory Usage: {Size * sizeof(double)} Byte")
             ;
         }
+
+        public void Print(nint start = 6, nint end = 4,
+            bool printMetadata = true, string? format = null)
+        {
+            using var _ = StringBuilderPool.Borrow(out var sb);
+            ToString(sb, start, end, printMetadata, format);
+            Console.WriteLine(sb.ToString());
+        }
+
+        public string ToString(nint start = 6, nint end = 4,
+            bool printMetadata = true, string? format = null)
+        {
+            using var _ = StringBuilderPool.Borrow(out var sb);
+            ToString(sb, start, end, printMetadata, format);
+            return sb.ToString();
+        }
+
+        public void ToString(StringBuilder sb, nint start = 6,nint end = 4,
+            bool printMetadata = true, string? format = null)
+        {
+            if(printMetadata)
+                MetaDataString(sb);
+            var segements = AsSegements();
+            int dimLength = Math.Max(1, Rank);
+            sb.Append('[', dimLength);
+            if (segements.MoveNext())
+            {
+                segements.Current.ToString(sb, start, end, format);
+                while (segements.MoveNext())
+                {
+                    sb.Append(']', segements.Step)
+                    .Append(',')
+                    .AppendLine()
+                    .Append('[', segements.Step);
+                    segements.Current.ToString(sb, start, end, format);
+                }
+            }
+            sb.Append(']', dimLength);
+        }
+
+        public NDArraySegements AsSegements()
+            => new(this);
+
+        public NDArrayEnumerator GetEnumerator()
+            => new(this);
         #endregion
 
+        public ref struct NDArraySegements
+        {
+            private NDArray Array { get; }
+            public nint Index { get; private set; }
+            public nint Length { get; }
+            public nint Batch { get; }
+            public nint Stride { get; }
+            public readonly Span<nint> StateSpan => state;
+
+            public Span<nint> state;
+
+            public ReadOnlySpan<nint> dimLengths;
+
+            public ReadOnlySpan<nint> dimStrides;
+
+            public VectorSpan Current { get; set; }
+
+            public int Step { get; set; }
+
+            public NDArraySegements(NDArray array)
+            {
+                if (array.Rank == 0)
+                {
+                    // For empty array, we can set it to the invalid state.
+                    Array = array;
+                    ReadOnlySpan<nint> lengths = array.Lengths;
+                    Batch = lengths[0];
+                    Length = 0;
+                    Stride = 1;
+                    state = [];
+                    dimLengths = [];
+                    dimStrides = [];
+                    Index = 0;
+                    Current = VectorSpan.Empty;
+                }
+                else if (array.Rank == 1)
+                {
+                    // For 1D array, we can use the VectorSpan directly.
+                    Array = array;
+                    ReadOnlySpan<nint> lengths = array.Lengths;
+                    Batch = lengths[0];
+                    Length = 1;
+                    Stride = array.Strides[0];
+                    state = [];
+                    dimLengths = [];
+                    dimStrides = [];
+                    Index = -1;
+                }
+                else
+                {
+                    Array = array;
+                    ReadOnlySpan<nint> lengths = array.Lengths;
+                    Batch = lengths[^1];
+                    Length = lengths[..^1].Product();
+                    Stride = array.Strides[^1];
+                    state = new nint[Array.Rank - 1];
+                    var rank = Array.Rank;
+                    dimLengths = Array.Metadata.AsSpan(0, rank - 1);
+                    dimStrides = Array.Metadata.AsSpan(rank, rank - 1);
+                    Index = -1;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                if(Length <= 1)
+                {
+                    if(Index >= 0)
+                        return false;
+                    else
+                    {
+                        Index = 0;
+                        Current = new(ref Array.Data[Array.Offset], 
+                            Batch, Stride);
+                        return true;
+                    }
+                }
+                int dimLength = dimLengths.Length;
+                var stateSpan = StateSpan;
+                if (Index > -1)
+                {
+                    Step = NintUtils.IncrementIndexLeft(dimLength - 1, stateSpan, dimLengths);
+                }
+                Index++;
+                var stridesSpan = Array.Strides[..^1];
+                nint index = Array.Offset + NintUtils.Dot(stateSpan, stridesSpan);
+                ref double headRef = ref Array.Data[index];
+                Current = new(ref headRef, Batch, Stride);
+                return Index < Length;
+            }
+        }
+
+        public ref struct NDArrayEnumerator(NDArray array)
+        {
+            NDArraySegements sequences = new(array);
+
+            nint elementIndex = -1;
+
+            public readonly ref double Current =>
+                ref sequences.Current[elementIndex];
+
+            public bool MoveNext()
+            {
+                elementIndex = (elementIndex + 1) % sequences.Batch;
+                if (elementIndex == 0)
+                    return sequences.MoveNext();
+                return true;
+            }
+        }
     }
 }

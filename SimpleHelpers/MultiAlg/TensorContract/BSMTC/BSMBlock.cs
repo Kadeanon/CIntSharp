@@ -7,21 +7,19 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
     internal readonly partial struct BSMBlock
     {
         readonly NDArray data;
-        #region Rows
+        readonly nint offset;
         readonly Memory<nint> rowScatters;
         public readonly int rowLength;
         public readonly int rowBlock;
-        #endregion Rows
-        #region Cols
         readonly Memory<nint> colScatters;
         public readonly int colLength;
         public readonly int colBlock;
-        #endregion Cols
 
-        public BSMBlock(NDArray data, Memory<nint> rowScatters, int rowLength, int rowBlock,
+        public BSMBlock(NDArray data, nint offset, Memory<nint> rowScatters, int rowLength, int rowBlock,
             Memory<nint> colScatters, int colLength, int colBlock)
         {
             this.data = data;
+            this.offset = offset;
             this.rowScatters = rowScatters;
             this.rowLength = rowLength;
             this.rowBlock = rowBlock;
@@ -36,8 +34,7 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
             {
                 return;
             }
-            Span<nint> zeros = stackalloc nint[data.Rank];
-            ref double originHead = ref data[zeros];
+            ref double originHead = ref GetHeadRef();
             var rowSpan = rowScatters.Span;
             var colSpan = colScatters.Span;
             ref nint rowToken = ref rowSpan[ii / rowBlock * (rowBlock + 1)];
@@ -86,9 +83,8 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
         public readonly void UnpackScale2(double alpha, int ii, int ir, int jj, int jr, Span<double> buffer, bool perferCol)
         {
             Debug.Assert(buffer.Length >= rowBlock * colBlock);
-            Span<nint> zeros = stackalloc nint[data.Rank];
             ref double bufferHead = ref buffer[0];
-            ref double originHead = ref data[zeros];
+            ref double originHead = ref GetHeadRef();
             var rowSpan = rowScatters.Span;
             var colSpan = colScatters.Span;
             ref nint rowToken = ref rowSpan[ii / rowBlock * (rowBlock + 1)];
@@ -198,9 +194,8 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
         public readonly void UnpackAxpy(double alpha, int ii, int ir, int jj, int jr, Span<double> buffer, bool perferCol)
         {
             Debug.Assert(buffer.Length >= rowBlock * colBlock);
-            Span<nint> zeros = stackalloc nint[data.Rank];
             ref double bufferHead = ref buffer[0];
-            ref double originHead = ref data[zeros];
+            ref double originHead = ref GetHeadRef();
             var rowSpan = rowScatters.Span;
             var colSpan = colScatters.Span;
             ref nint rowToken = ref rowSpan[ii / rowBlock * (rowBlock + 1)];
@@ -349,10 +344,11 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
             return val;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref double GetHeadRef()
         {
-            Span<nint> head = stackalloc nint[data.Rank];
-            return ref data[head];
+            Span<nint> zeros = stackalloc nint[data.Rank];
+            return ref Unsafe.Add(ref data[zeros], offset);
         }
 
         public readonly ref double Local(nint row, nint col)
@@ -361,12 +357,6 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
             nint colOffset = GetColOffset(col);
             ref double head = ref GetHeadRef();
             return ref Unsafe.Add(ref head, rowOffset + colOffset);
-        }
-
-        public readonly ref double this[nint row, nint col]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Local(row, col);
         }
     }
 }

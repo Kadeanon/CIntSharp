@@ -9,14 +9,14 @@ namespace SimpleHelpers.Utilities
 
         //public static nint Product(this IEnumerable<nint> values) => values.Aggregate((nint)1, (a, b) => a * b);
 
-        public static nint Product(this ReadOnlySpan<nint> values)
-        => TensorOperations.Product(values) ?? 0;
+        public static nint Product(this ReadOnlySpan<nint> values, bool oneWhenEmpty = false)
+        => TensorOperations.Product(values) ?? (oneWhenEmpty ? 1 : 0);
 
-        public static nint Product(this nint[] values)
-        => TensorOperations.Product<nint>(values) ?? 0;
+        public static nint Product(this nint[] values, bool oneWhenEmpty = false)
+        => TensorOperations.Product<nint>(values) ?? (oneWhenEmpty ? 1 : 0);
 
-        public static nint Product(this Span<nint> values)
-        => TensorOperations.Product<nint>(values) ?? 0;
+        public static nint Product(this Span<nint> values, bool oneWhenEmpty = false)
+        => TensorOperations.Product<nint>(values) ?? (oneWhenEmpty ? 1 : 0);
 
         public static nint Dot(ReadOnlySpan<nint> left, ReadOnlySpan<nint> right)
         => Tensor.AggregateNumber<nint, MultiplyOperator<nint>, SumOperator<nint>>(left, right);

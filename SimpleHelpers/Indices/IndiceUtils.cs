@@ -328,6 +328,18 @@ namespace SimpleHelpers.Indices
             return result;
         }
 
+        public static LengthType TotalLength(this Span<DoubleIndice> indices)
+        {
+            if (indices.Length == 0)
+                return 0;
+            LengthType result = 1;
+            foreach (var indice in indices)
+            {
+                result *= indice.Length;
+            }
+            return result;
+        }
+
         public static nint Align(this nint total, nint block)
             => (total + block - 1) / block * block;
 

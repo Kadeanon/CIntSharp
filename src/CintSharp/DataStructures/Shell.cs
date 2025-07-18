@@ -29,15 +29,14 @@ namespace CintSharp.DataStructures
             AngMomentum = angMomentum;
         }
 
-        public readonly void CopyToBasis(ref Bas bas, int atomIdx, List<double> envs)
+        public readonly Bas CopyToBasis(int atomIdx) => new()
         {
-            bas.atomOf = atomIdx;
-            bas.angleOf = AngMomentum;
-            bas.numOfPrim = NumOfPrim;
-            bas.numOfCont = NumOfCont;
-            bas.pointerOfExps = ExpsPtr;
-            bas.pointerOfCoeff = CoefsPtr;
-        }
-
+            atomOf = atomIdx,
+            angleOf = AngMomentum,
+            numOfPrim = NumOfPrim,
+            numOfCont = NumOfCont,
+            pointerOfExps = ExpsPtr,
+            pointerOfCoeffs = CoefsPtr
+        };
     }
 }

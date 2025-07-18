@@ -83,7 +83,15 @@ namespace CintSharp.BasisParser
                     JsonArray coefsJArray = mulShellCoefsJArray[shellIndex].AsArray();
                     double[] coefs = new double[coefsJArray.Count];
                     JsonArray angJArray = layer["angular_momentum"].AsArray();
-                    int angMomentum = angJArray[shellIndex].GetValue<int>();//壳层劈裂时每个系数具有自己对应的角动量
+                    int angMomentum;
+                    if (angJArray.Count == 1)
+                    {
+                        angMomentum = angJArray[0].GetValue<int>();
+                    }
+                    else
+                    {
+                        angMomentum = angJArray[shellIndex].GetValue<int>();//壳层劈裂时每个系数具有自己对应的角动量
+                    }
 
                     for (int i = 0; i < coefs.Length; i++)
                     {

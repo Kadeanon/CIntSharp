@@ -33,11 +33,9 @@ namespace CintSharp.Intor
             var ranges = Envs.RangesByShells;
             NDArray result = NDArray.CreateUninitialized
                 ([Components, Envs.NAO, Envs.NAO]);
-            Tensor<double> val = Tensor.CreateUninitialized<double>
-                ([Components, Envs.NAO, Envs.NAO]);
             maxLength *= maxLength;
             maxLength *= Components;
-            double[] caches = ArrayPool<double>.Shared.Rent(1024 * Components * Components);
+            //double[] caches = ArrayPool<double>.Shared.Rent(1024 * Components * Components);
             double[] buffer = ArrayPool<double>.Shared.Rent(maxLength);
             int[] dims = ArrayPool<int>.Shared.Rent(2);
             int[] shls = ArrayPool<int>.Shared.Rent(2);
@@ -52,53 +50,18 @@ namespace CintSharp.Intor
                     dims[1] = lengthJ;
                     shls[1] = j;
                     intor.Invoke(buffer, dims, shls, 
-                        Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, caches);
-
-                    var subVal = val[.., ranges[i], ranges[j]];
-                    var subResult = result[.., ranges[i], ranges[j]];
-
-                    for (int c = 0; c < Components; c++)
-                    {
-                        for (int a = 0; a < lengthI; a++)
-                        {
-                            for (int b = 0; b < lengthJ; b++)
-                            {
-                                var valval = subVal[c, a, b];
-                                var res = subResult[c, a, b];
-                                Debug.Assert(Math.Abs(valval - res) < 1e-10,
-                                    $"The value {val} and result {res} are not equal.");
-                            }
-                        }
-                    }
-
-                    val[.., ranges[i], ranges[j]] =
-                        Tensor.Create(buffer, [Components, lengthJ, lengthI])
-                        .PermuteDimensions([0, 2, 1]);
+                        Envs.Atms, Envs.Natm, Envs.Bases, Envs.Nbas, Envs.Envs, Optimizer, null);
                     result[.., ranges[i], ranges[j]] =
                         new NDArray(buffer, [Components, lengthI, lengthJ],
                         [lengthI * lengthJ,
                         1,
                         lengthI]);
-
-                    for (int c = 0; c < Components; c++)
-                    {
-                        for (int a = 0; a < lengthI; a++)
-                        {
-                            for (int b = 0; b < lengthJ; b++)
-                            {
-                                var valval = subVal[c, a, b];
-                                var res = subResult[c, a, b];
-                                Debug.Assert(Math.Abs(valval - res) < 1e-10,
-                                    $"The value {val} and result {res} are not equal.");
-                            }
-                        }
-                    }
                 }
             }
 
             ArrayPool<int>.Shared.Return(shls);
             ArrayPool<int>.Shared.Return(dims);
-            ArrayPool<double>.Shared.Return(caches);
+            //ArrayPool<double>.Shared.Return(caches);
             ArrayPool<double>.Shared.Return(buffer);
             if (Components == 1) 
             {

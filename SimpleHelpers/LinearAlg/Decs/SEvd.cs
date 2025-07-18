@@ -12,9 +12,10 @@ namespace SimpleHelpers.LinearAlg.Dec
         readonly Vector eigenValues;
         readonly Matrix eigenVectors;
         readonly Matrix origin;
-        readonly UpLoChar upLo;
+        readonly bool lower;
         readonly nint n;
         bool computed;
+        UpLoChar Uplo => lower ? UpLoChar.Lower : UpLoChar.Upper;
 
         public Vector EigenValues
         {
@@ -34,16 +35,26 @@ namespace SimpleHelpers.LinearAlg.Dec
             }
         }
 
-        public SEvd(Matrix mat, UpLoChar uplo = UpLoChar.Lower)
+        public SEvd(Matrix mat, bool lower = true, bool inplace = false)
         {
             if (mat.Rows > int.MaxValue)
                 throw new NotImplementedException("Matrix size exceeds int.MaxValue, not supported yet.");
             ArgumentOutOfRangeException.ThrowIfNotEqual(mat.Rows, mat.Cols, nameof(mat));
             n = mat.Rows;
             origin = mat;
-            upLo = uplo;
+            this.lower = lower;
             eigenValues = Vector.Create(n, uninited: true);
-            eigenVectors = mat.Clone();
+            if (inplace)
+            {
+                if (mat.ColStride != 1)
+                    throw new ArgumentException("In-place operation " +
+                        "requires row-major matrix.", nameof(mat));
+                eigenVectors = mat;
+            }
+            else
+            {
+                eigenVectors = mat.Clone();
+            }
             computed = false;
         }
 
@@ -51,14 +62,14 @@ namespace SimpleHelpers.LinearAlg.Dec
         {
             if (computed)
                 return;
-            // query work space
             int info = Lapack.syev(
                 Layout.RowMajor,
-                'V', uplo:upLo,
+                'V', uplo:Uplo,
                 (int)n,
                 eigenVectors.GetSpan(), (int)n, eigenValues.GetSpan());
             if (info != 0)
-                throw new InvalidOperationException($"LAPACK syev failed with info = {info}");
+                throw new LinalgException("dsyev", info,
+                    $"LAPACK dsyev failed.");
             computed = true;
         }
 
@@ -82,7 +93,8 @@ namespace SimpleHelpers.LinearAlg.Dec
             for (int i = 0; i < n; i++)
             {
                 if (diag[i] <= 0)
-                    throw new InvalidOperationException($"Eigenvalue {i} is non-positive: {diag[i]}.");
+                    throw new LinalgException("SEVD.ReverseSqrt",
+                        $"Eigenvalue {i} is non-positive: {diag[i]}.");
                 diag[i] = 1.0 / Math.Sqrt(diag[i]);
             }
             return ReconstructMatrix(diag);

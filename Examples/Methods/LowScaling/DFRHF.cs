@@ -1,26 +1,32 @@
 ﻿using CintSharp.DataStructures;
-using CintSharp.Intor;
+using CintSharp.DensityFitting;
+using CintSharp.DensityFitting.Intor;
 using SimpleHelpers;
 using SimpleHelpers.LinearAlg;
 using SimpleHelpers.MultiAlg;
 using SimpleHelpers.MultiAlg.TensorContract;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics.Tensors;
 using System.Text;
 
-namespace Examples;
+namespace Examples.Methods.LowScaling;
 
-internal class RHF
+public class DFRHF
 {
     public Atom[] Atoms { get; }
 
-    public CIntEnvs Envs { get; }
+    public DFEnvs Envs { get; }
 
     public Matrix Ovlp { get; set; }
 
     public Matrix HCore { get; set; }
 
-    public NDArray ERI { get; set; }
+    public Matrix Int2c2e { get; set; }
+
+    public NDArray Inv2c2e { get; set; }
+
+    public NDArray Int3c2e { get; set; }
 
     public Matrix X { get; set; }
 
@@ -36,12 +42,12 @@ internal class RHF
 
     public Vector? Es { get; set; }
 
-    public RHFDIIS? DIIS { get; set; }
+    public DFRHFDIIS? DIIS { get; set; }
 
     public const int MaxCycle = 128;
-    public const double RequiredDelEnergy = 1e-12;
-    private const double RequiredMaxDelF = 1e-12;
-    private const double RequiredAverDelF = 1e-12;
+    public const double RequiredDelEnergy = 1e-10;
+    private const double RequiredMaxDelF = 1e-9;
+    private const double RequiredAverDelF = 1e-10;
 
     public double ElectronicEnergy
     {
@@ -71,7 +77,7 @@ internal class RHF
                 {
                     var a = Atoms[i];
                     var b = Atoms[j];
-                    result += a.AtomNumber * b.AtomNumber 
+                    result += a.AtomNumber * b.AtomNumber
                         / (a.position - b.position).Length;
                 }
             }
@@ -79,12 +85,12 @@ internal class RHF
         }
     }
 
-    public RHF(IEnumerable<Atom> atoms, string name, bool useDIIS = true)
+    public DFRHF(IEnumerable<Atom> atoms, string name, string auxName, bool useDIIS = true)
     {
         Atoms = atoms.ToArray();
-        Envs = CIntEnvs.Create(atoms, atm => name);
+        Envs = DFEnvs.Create(atoms, atm => name, atm => auxName);
         InitParams();
-        DIIS = useDIIS ? new RHFDIIS(this) : null;
+        DIIS = useDIIS ? new(this) : null;
     }
 
     public double Run()
@@ -96,7 +102,9 @@ internal class RHF
     [MemberNotNull(
         nameof(Ovlp),
         nameof(HCore),
-        nameof(ERI),
+        nameof(Int2c2e),
+        nameof(Inv2c2e),
+        nameof(Int3c2e),
         nameof(X),
         nameof(XH),
         nameof(P),
@@ -111,7 +119,10 @@ internal class RHF
 
         var hcoreTensor = Envs.GetHCore();
         HCore = hcoreTensor.AsMatrix();
-        ERI = Envs.GetERI();
+        Int2c2e = Envs.Get2c2e();
+        Int3c2e = Envs.Get3c2e();
+        var sevd = Int2c2e.SEvd();
+        Inv2c2e = sevd.Power(-1).AsNDArray();
         X = Ovlp.SEvd().ReverseSqrt();
         XH = X.Transpose();
         P = Matrix.Create(nao, nao);
@@ -119,22 +130,17 @@ internal class RHF
         Fock = HCore + G;
     }
 
-    public static Matrix Tensor2Matrix(NDArray tensor)
-    {
-        return tensor.AsMatrix();
-    }
-
     [MemberNotNull(nameof(G))]
     public void UpdateFockMatrix()
     {
-        nint basisLength = P.Rows;
-        G ??= Matrix.Create(basisLength, basisLength);
-        var GTensor = G.AsNDArray();
         var PTensor = P.AsNDArray();
-        ContractMethods.SimpleContract
-            ("sl,uvsl->uv", 1.0, PTensor, ERI, 0.0, GTensor);
-        ContractMethods.SimpleContract
-            ("ls,mlns->mn", -0.5, PTensor, ERI, 1.0, GTensor);
+        var GTensor = NDArray.Einsum(
+            "sl, uvP, PQ, slQ -> uv",
+            PTensor, Int3c2e, Inv2c2e, Int3c2e);
+        GTensor -= 0.5 * NDArray.Einsum
+            ("vl, uvP, PQ, slQ->us",
+            PTensor, Int3c2e, Inv2c2e, Int3c2e);
+        G = GTensor.AsMatrix();
         Fock = HCore + G;
     }
 
@@ -207,7 +213,7 @@ internal class RHF
     {
         if (DIIS is null)
             return;
-        Fock = DIIS.Update(Fock, P);
+        Fock = DIIS.Invoke(Fock, P);
     }
 
     public void OutputEnergys()
@@ -273,5 +279,27 @@ internal class RHF
             Console.WriteLine("Not Converged!");
         }
         return isConver;
+    }
+
+    public class DFRHFDIIS(DFRHF rhf, int diisSpace = DFRHFDIIS.maxRHFDiis)
+        : DIISBase(rhf.Ovlp.Rows * rhf.Ovlp.Rows, diisSpace)
+    {
+        const int maxRHFDiis = 6;
+        readonly Matrix ovlp = rhf.Ovlp;
+        protected readonly NDArray inputs = NDArray.Create(
+            [diisSpace, rhf.Ovlp.Rows, rhf.Ovlp.Rows]);
+
+        public Matrix Invoke(Matrix fock, Matrix density)
+        {
+            var B = fock * density * ovlp - ovlp * density * fock;
+            var error = B.Flatten();
+            var coeffs = UpdateAndGetCoeffs(error);
+            inputs[currentIndex, .., ..] = fock.AsNDArray();
+            if (coeffs.Length <= 1)
+                return fock;
+            var fockSlice = inputs[..currentSize];
+            NDArray.BatchAxpy(coeffs, fockSlice, fock.AsNDArray());
+            return fock;
+        }
     }
 }

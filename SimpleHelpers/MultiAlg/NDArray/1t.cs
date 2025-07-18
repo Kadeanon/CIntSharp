@@ -12,7 +12,7 @@ namespace SimpleHelpers.MultiAlg
         public static void Axpy(double alpha, NDArray x, NDArray y)
             => ApplyToWith<Details.AxpyOperator, double>(x, alpha, y);
 
-        public static void Axpy(Vector alpha, NDArray x, NDArray y)
+        public static void BatchAxpy(Vector alpha, NDArray x, NDArray y)
             => BatchApplyToWith<Details.AxpyOperator>(x, alpha, y);
 
         public static void Copy(NDArray x, NDArray y)

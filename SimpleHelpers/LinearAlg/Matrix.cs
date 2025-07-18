@@ -28,7 +28,7 @@ namespace SimpleHelpers.LinearAlg
     public class Matrix : IEnumerable<double>
     {
         internal double[] Data { get; }
-        internal int Offset { get; set; }
+        internal nint Offset { get; set; }
         public nint Rows { get; internal set; }
         public nint Cols { get; internal set; }
         public nint RowStride { get; internal set; }
@@ -58,7 +58,7 @@ namespace SimpleHelpers.LinearAlg
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Matrix(double[] array, int offset)
+        public Matrix(double[] array, nint offset)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
             ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual
@@ -73,7 +73,7 @@ namespace SimpleHelpers.LinearAlg
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Matrix(double[] array, int rows, nint cols)
+        public Matrix(double[] array, nint rows, nint cols)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
             ArgumentOutOfRangeException.ThrowIfNegative(rows, nameof(rows));
@@ -89,7 +89,7 @@ namespace SimpleHelpers.LinearAlg
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Matrix(double[] array, int offset, nint rows, nint cols)
+        public Matrix(double[] array, nint offset, nint rows, nint cols)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
             ArgumentOutOfRangeException.ThrowIfNegative(offset, nameof(offset));
@@ -107,7 +107,7 @@ namespace SimpleHelpers.LinearAlg
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Matrix(double[] array, int offset, nint rows, nint cols, nint rowStride)
+        public Matrix(double[] array, nint offset, nint rows, nint cols, nint rowStride)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
             ArgumentOutOfRangeException.ThrowIfNegative(offset, nameof(offset));
@@ -125,7 +125,7 @@ namespace SimpleHelpers.LinearAlg
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Matrix(double[] array, int offset, nint rows, nint cols,
+        public Matrix(double[] array, nint offset, nint rows, nint cols,
             nint rowStride, nint colStride)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
@@ -360,6 +360,9 @@ namespace SimpleHelpers.LinearAlg
 
         #region Memory
         public void FlattenTo(Span<double> target)
+            => FlattenTo(target.AsExSpan());
+
+        public void FlattenTo(ExSpan<double> target)
         {
             if (target.Length < TotalSize)
                 throw new ArgumentException($"Target span is too small. " +
@@ -370,7 +373,7 @@ namespace SimpleHelpers.LinearAlg
 
             if (ColStride == 1)
             {
-                for (int i = 0; i < Rows; i++)
+                for (nint i = 0; i < Rows; i++)
                 {
                     ExMemoryMarshal.CreateExSpan(ref head, (int)Cols)
                             .CopyTo(ExMemoryMarshal.CreateExSpan(ref targetRef, (int)Cols));
@@ -380,10 +383,10 @@ namespace SimpleHelpers.LinearAlg
             }
             else
             {
-                for (int i = 0; i < Rows; i++)
+                for (nint i = 0; i < Rows; i++)
                 {
                     ref double ptr = ref head;
-                    int j = 0;
+                    nint j = 0;
                     for (; j <= Cols - 4; j += 4)
                     {
                         targetRef = ptr;
@@ -435,8 +438,12 @@ namespace SimpleHelpers.LinearAlg
             return Clone();
         }
 
-        public Vector Flatten()
+        public Vector Flatten(bool forceCopy = false)
         {
+            if(!forceCopy && RowStride == Cols * ColStride)
+            {
+                return new Vector(Data, Offset, Length, ColStride);
+            }
             double[] arr = new double[Length];
             FlattenTo(arr);
             return new(arr);
@@ -446,7 +453,7 @@ namespace SimpleHelpers.LinearAlg
         {
             if (IsEmpty)
                 throw new InvalidOperationException("Matrix is empty.");
-            return Data.AsSpan(Offset);
+            return Data.AsSpan((int)Offset);
         }
 
         /// <summary>
@@ -689,6 +696,8 @@ namespace SimpleHelpers.LinearAlg
         public SEvd SEvd() => new(this);
 
         public LU LU(bool inplace = false) => new(this, inplace);
+
+        public Cholesky Chol(bool inplace = false) => new(this, inplace);
 
         #endregion lapack
 

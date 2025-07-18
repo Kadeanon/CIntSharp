@@ -26,7 +26,7 @@ namespace SimpleHelpers
             }
         }
 
-        public static Vector AsVector(this System.Numerics.Tensors.Tensor<double> tensor)
+        public static Vector AsVector(this Tensor<double> tensor)
         {
             if (tensor.Rank != 1)
                 throw new ArgumentException("Tensor must be 1-dimensional to convert to Vector.");
@@ -38,7 +38,7 @@ namespace SimpleHelpers
             return result;
         }
 
-        public static System.Numerics.Tensors.Tensor<double> AsSNTensor(
+        public static Tensor<double> AsSNTensor(
             this Vector vec)
         {
             return System.Numerics.Tensors.Tensor.Create
@@ -72,6 +72,12 @@ namespace SimpleHelpers
                 throw new ArgumentException("NDArray must be 1-dimensional to convert to Vector.");
             return new Vector(array.Data, (int)array.Offset,
                 array.Lengths[0], array.Strides[0]);
+        }
+
+        public static Vector FlattenToVector(this NDArray array, 
+            bool allowCopy = true, bool forceCopy = true)
+        {
+            return array.Reshape([-1], allowCopy, forceCopy).AsVector();
         }
     }
 }

@@ -102,8 +102,7 @@ namespace SimpleHelpers.MultiAlg
 
         public void SetData(NDArray value, params ReadOnlySpan<NRange> ranges)
         {
-            var array = GetData(ranges);
-            SimpleTranspose.TransMethods.CopyTo(value, array);
+            GetData(ranges).AssignedBy(value);
         }
 
         public void SetData(double value, params ReadOnlySpan<NRange> ranges)

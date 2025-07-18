@@ -99,14 +99,13 @@ namespace SimpleHelpers.MultiAlg
             ContinuousInfo info = new(Metadata, false);
             int newNumDims = shape.Length;
             Span<nint> strides = stackalloc nint[newNumDims];
-            Span<nint> starts = stackalloc nint[newNumDims];
             //Try check with continuous info
-            Span<ContinuousLayer> Continuouslayers = CollectionsMarshal.AsSpan(info.Layers);
-            Span<int> layers = stackalloc int[Continuouslayers.Length];
+            Span<ContinuousLayer> continuouslayers = info.Layers.AsSpan();
+            Span<int> layers = stackalloc int[continuouslayers.Length];
             int numLayers = 0;
-            for (var iLayer = 0; iLayer < Continuouslayers.Length; iLayer++)
+            for (var iLayer = 0; iLayer < continuouslayers.Length; iLayer++)
             {
-                ref var layer = ref Continuouslayers[iLayer];
+                ref var layer = ref continuouslayers[iLayer];
                 if (layer.IsHead)
                 {
                     layers[numLayers] = iLayer;
@@ -115,32 +114,28 @@ namespace SimpleHelpers.MultiAlg
             }
             layers = layers[..numLayers];
             numLayers--;
-            ref ContinuousLayer layerHeader = ref Continuouslayers[layers[numLayers]];
+            ref ContinuousLayer layerHeader = ref continuouslayers[layers[numLayers]];
             nint stride = layerHeader.Stride;
             nint size = 1;
-            nint start = layerHeader.Start;
             for (int i = newNumDims - 1; i >= 0; i--)
             {
                 strides[i] = stride;
-                starts[i] = start;
                 stride *= shape[i];
-                start = 0;
                 size *= shape[i];
-                if (size > layerHeader.Size)
+                if (size > layerHeader.BlockSize)
                 {
                     return false;
                 }
-                else if (size == layerHeader.Size)
+                else if (size == layerHeader.BlockSize)
                 {
                     if (numLayers == 0)
                     {
                         break;
                     }
                     numLayers--;
-                    layerHeader = ref Continuouslayers[layers[numLayers]];
+                    layerHeader = ref continuouslayers[layers[numLayers]];
                     stride = layerHeader.Stride;
                     size = 1;
-                    start = layerHeader.Start;
                 }
             }
             for (int i = 0; i < newNumDims; i++)
@@ -164,7 +159,10 @@ namespace SimpleHelpers.MultiAlg
             Span<nint> tempShape = stackalloc nint[shape.Length];
             shape.CopyTo(tempShape);
             if (Reshape_CheckShape(tempShape))
+            {
                 result = this;
+                return true;
+            }
 
             if (Reshape_TryBuildHead(tempShape, out var head))
             {
@@ -181,10 +179,11 @@ namespace SimpleHelpers.MultiAlg
         public NDArray SwapAxis(int dim0 = 0, int dim1 = 1)
         {
             var newArray = View();
-            (Metadata[dim0], Metadata[dim1]) =
-                (Metadata[dim1], Metadata[dim0]);
-            (Metadata[Rank + dim0], Metadata[Rank + dim1]) =
-                (Metadata[Rank + dim1], Metadata[Rank + dim0]);
+            Span<nint> metadata = newArray.Metadata.AsSpan();
+            (metadata[dim0], metadata[dim1]) =
+                (metadata[dim1], metadata[dim0]);
+            (metadata[Rank + dim0], metadata[Rank + dim1]) =
+                (metadata[Rank + dim1], metadata[Rank + dim0]);
             return newArray;
         }
 
@@ -198,9 +197,9 @@ namespace SimpleHelpers.MultiAlg
             {
                 var length = lengths[i];
                 var stride = strides[i];
-                if (indices[i].Length != 1)
+                if (length != 1)
                 {
-                    indices[newRank] = indices[i];
+                    indices[newRank] = new(length, stride);
                     newRank++;
                 }
             }
@@ -260,6 +259,23 @@ namespace SimpleHelpers.MultiAlg
             return new NDArray(Data, offset, metadata, Rank - 1);
         }
 
+        public void SliceFirstDim(nint index, NDArray orig)
+        {
+            nint[] metadata = new nint[(Rank - 1) * 2];
+            nint length0 = Lengths[0];
+            nint stride0 = Strides[0];
+            ThrowUtils.ThrowIfNotInRange_CheckNegative
+                (ref index, length0,
+                $"The index {index} is out of bounds for the first dimension with length {length0}.");
+            nint offset = Offset + index * stride0;
+            for (int i = 1; i < Rank; i++)
+            {
+                metadata[i - 1] = Lengths[i];
+                metadata[Rank + i - 2] = Strides[i];
+            }
+            NDArray.Copy(orig, new NDArray(Data, offset, metadata, Rank - 1));
+        }
+
         public NDArray Transpose(params ReadOnlySpan<int> dims)
         {
             var newArray = View();
@@ -300,7 +316,7 @@ namespace SimpleHelpers.MultiAlg
         public NDArray View()
         {
             return new NDArray(Data,
-                Offset, (nint[])Metadata.Clone(), Rank);
+                Offset, Metadata.AsSpan().ToArray(), Rank);
         }
     }
 }

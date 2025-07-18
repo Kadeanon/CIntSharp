@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 namespace SimpleHelpers.LinearAlg
 {
     
-    [DebuggerTypeProxy(typeof(DVectorSpanDebugView))]
+    [DebuggerTypeProxy(typeof(VectorSpanDebugView))]
     public class Vector
     {
         public double[] Data { get; }
-        public int Offset { get; }
+        public nint Offset { get; }
         public nint Length { get; }
         public nint Stride { get; }
 
@@ -29,7 +29,7 @@ namespace SimpleHelpers.LinearAlg
 
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector(double[] array, int start, nint length, nint step = 1)
+        public Vector(double[] array, nint start, nint length, nint step = 1)
         {
             ArgumentNullException.ThrowIfNull(array, nameof(array));
             ArgumentOutOfRangeException.ThrowIfNegative(start, nameof(start));
@@ -69,6 +69,13 @@ namespace SimpleHelpers.LinearAlg
                 (var start, var length) = range.GetOffsetAndLength(Length);
                 return Slice(start, length);
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                (var start, var length) = range.GetOffsetAndLength(Length);
+                value.CopyTo(Slice(start, length));
+            }
         }
 
         public bool IsEmpty => Length == 0;
@@ -104,15 +111,15 @@ namespace SimpleHelpers.LinearAlg
         internal ref double GetHeadRef()
         {
             if (IsEmpty)
-                throw new InvalidOperationException("Matrix is empty.");
+                throw new InvalidOperationException("Vector is empty.");
             return ref Data[Offset];
         }
 
         internal Span<double> GetSpan()
         {
             if (IsEmpty)
-                throw new InvalidOperationException("Matrix is empty.");
-            return Data.AsSpan(Offset);
+                throw new InvalidOperationException("Vector is empty.");
+            return Data.AsSpan((int)Offset);
         }
 
         public ref struct VectorEnumerator
@@ -289,10 +296,10 @@ namespace SimpleHelpers.LinearAlg
             => BlasLike.Dot(left, right);
     }
 
-    public readonly ref struct DVectorSpanDebugView
+    public readonly ref struct VectorSpanDebugView
     {
         public readonly object Items;
-        public DVectorSpanDebugView(Vector span)
+        public VectorSpanDebugView(Vector span)
         {
             Length = span.Length;
             Stride = span.Stride;

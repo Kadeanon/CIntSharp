@@ -11,6 +11,7 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
         private struct PackParallel(in BSMBlock block, Memory<double> buffer) : IAction
         {
             readonly NDArray data = block.data;
+            readonly nint offset = block.offset;
             readonly Memory<double> buffer = buffer;
             #region Rows
             readonly Memory<nint> rowScatters = block.rowScatters;
@@ -32,7 +33,7 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
             public readonly void Invoke(int i)
             {
                 Span<nint> zeros = stackalloc nint[data.Rank];
-                ref double head = ref data[zeros];
+                ref double head = ref Unsafe.Add(ref data[zeros], offset);
                 int iLengthAlign = rowLength.Align(rowBlock);
                 int jLengthAlign = colLength.Align(colBlock);
                 var rowScattersBlock = rowScatters.Span.Slice(i * (rowBlock + 1), rowBlock + 1);

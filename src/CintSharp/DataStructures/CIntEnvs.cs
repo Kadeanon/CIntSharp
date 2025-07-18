@@ -12,9 +12,8 @@ using System.Threading.Tasks;
 
 namespace CintSharp.DataStructures
 {
-    public class CIntEnvs
+    public class CIntEnvs : IEnvorinment
     {
-
         public Atm[] Atms { get; }
 
         public Bas[] Bases { get; }
@@ -31,11 +30,13 @@ namespace CintSharp.DataStructures
 
         public int Natm => Atms.Length;
 
-        public int Nbas => Bases.Length;
+        public int Nbas { get; }
 
         public int NAO { get; }
 
-        internal CIntEnvs(Atm[] atms, Bas[] bases, double[] envs, int[] lengthByShells, Range[] rangesByAtoms, Range[] rangesByShells)
+        internal CIntEnvs(Atm[] atms, Bas[] bases, double[] envs, 
+            int[] lengthByShells, Range[] rangesByAtoms, 
+            Range[] rangesByShells)
         {
             Atms = atms;
             Bases = bases;
@@ -44,6 +45,7 @@ namespace CintSharp.DataStructures
             RangesByAtoms = rangesByAtoms;
             ShellLengths = lengthByShells;
             NAO = lengthByShells.Sum();
+            Nbas = bases.Length;
         }
 
         public static CIntEnvs Create(IEnumerable<Atom> atoms, Func<Atom, string> basisNameSetter, IBasisParser? parser = null) 
@@ -97,13 +99,13 @@ namespace CintSharp.DataStructures
 
     public readonly struct HeaderRinvScope : IDisposable 
     {
-        public CIntEnvs Envs { get; }
+        public IEnvorinment Envs { get; }
 
         public readonly ref Vector3 Rinv => ref Envs.EnvHeader.RinvOrigin;
 
         public Vector3 RinvOrigin { get; }
 
-        public HeaderRinvScope(CIntEnvs envs, Vector3 rinvOrigin)
+        public HeaderRinvScope(IEnvorinment envs, Vector3 rinvOrigin)
         {
             Envs = envs;
             ref Vector3 rinv = ref Envs.EnvHeader.RinvOrigin;
@@ -111,7 +113,7 @@ namespace CintSharp.DataStructures
             rinv = rinvOrigin;
         }
 
-        public HeaderRinvScope(CIntEnvs envs, int atomIndex) : this(envs, envs.AtomCoord(atomIndex))
+        public HeaderRinvScope(IEnvorinment envs, int atomIndex) : this(envs, envs.AtomCoord(atomIndex))
         {
         }
 

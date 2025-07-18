@@ -1,15 +1,14 @@
 ﻿using SimpleHelpers.Indices;
 using SimpleHelpers.Utilities.Pools;
-using System.Buffers;
 using System.Text;
 
 namespace SimpleHelpers.MultiAlg.Helpers
 {
     public class ContinuousInfo
     {
-        public int NumLayer;
+        public int NumLayer { get; }
 
-        public List<ContinuousLayer> Layers;
+        public ContinuousLayer[] Layers { get; }
 
         public ContinuousInfo(ReadOnlySpan<nint> head, bool shouldSort = true)
         {
@@ -19,63 +18,50 @@ namespace SimpleHelpers.MultiAlg.Helpers
                 Layers = [];
                 return;
             }
-            else
-            {
-                int rank = head.Length / 2;
-                Span<SingleIndice> dims = stackalloc SingleIndice[rank];
-                for (int i = 0; i < rank; i++)
-                {
-                    dims[i] = new SingleIndice(head[i], head[rank + i]);
-                }
-                NumLayer = rank;
-                Layers = new List<ContinuousLayer>(NumLayer * 2);
-                var buffer = ArrayPool<SingleIndice>.Shared.Rent(NumLayer);
-                buffer.AsSpan(0, rank).Clear();
-                for (int i = 0; i < rank; i++)
-                {
-                    buffer[i] = new(head[i], head[rank + i]);
-                }
-                if (shouldSort)
-                {
-                    // sort by stride descending
-                    Array.Sort(buffer, (a, b) => b.Stride.CompareTo(a.Stride));
-                }
-                int dimIndex = 0;
-                int layerIndex = 0;
-                int headIndex = 0;
-                var dim = buffer[dimIndex];
-                var layer = ContinuousLayer.HeadFromDiminfo(dim, layerIndex);
-                var dimOrigIndex = 0;
-                Layers.Add(layer);//Placehold
-                Layers.Add(ContinuousLayer.FromDiminfo(dim, dimOrigIndex));
-                dimIndex++;
-                while (dimIndex < NumLayer)
-                {
-                    dim = buffer[dimIndex];
 
-                    if (dim.Stride == layer.Size)
-                    {
-                        layer.Length *= dim.Length;
-                        layer.Size *= dim.Length;
-                    }
-                    else // should create new layer
-                    {
-                        Layers[headIndex] = layer;//write back
-                        headIndex = Layers.Count;// new head index
-                        layerIndex++;
-                        layer = ContinuousLayer.HeadFromDiminfo(dim, layerIndex);
-                        Layers.Add(layer);
-                    }
-                    dimOrigIndex++;
-                    Layers.Add(ContinuousLayer.FromDiminfo(dim, dimOrigIndex));
-                    dimIndex++;
-                }
-                Layers[headIndex] = layer;//write back
-                NumLayer = layerIndex + 1;
-                buffer.AsSpan(0, NumLayer).Clear();
-                ArrayPool<SingleIndice>.Shared.Return(buffer);
+            int rank = head.Length / 2;
+            var layers = new ContinuousLayer[rank * 2];
+
+            Span<SingleIndice> dims = stackalloc SingleIndice[rank];
+            for (int i = 0; i < rank; i++)
+                dims[i] = new SingleIndice(head[i], head[rank + i]);
+
+            if (shouldSort)
+            {
+                // sort by stride descending
+                dims.Sort((a, b) => b.Stride.CompareTo(a.Stride));
             }
 
+            int layerIndex = 0;
+            var layersArrayIndex = 0;
+            int layersHeadIndex = 0;
+
+            var dim = dims[layersArrayIndex];
+            // 初始化第一个 head layer
+            ref var headLayer = ref layers[layersArrayIndex++];
+            headLayer = new(dim, 0, isHead: true);
+            layers[layersArrayIndex++] = new(dim, 0);
+            
+
+            for (int dimIndex = 1; dimIndex < rank; dimIndex++)
+            {
+                dim = dims[dimIndex];
+
+                if (headLayer.Stride == dim.Length * dim.Stride)
+                {
+                    headLayer.Length *= dim.Length;
+                    headLayer.Stride = dim.Stride;
+                }
+                else // should create new layer
+                {
+                    layersHeadIndex = layersArrayIndex++;
+                    headLayer = ref layers[layersHeadIndex];
+                    layerIndex++;
+                }
+                layers[layersArrayIndex++] = new(dim, dimIndex); 
+            }
+            Layers = layers.AsSpan(0, layersArrayIndex).ToArray();
+            NumLayer = layerIndex + 1;
         }
 
         public void ToString(StringBuilder sb)
@@ -90,7 +76,7 @@ namespace SimpleHelpers.MultiAlg.Helpers
                     {
                         sb.Append($"totalStep={head.Stride}  ")
                         .Append($"totalLength={head.Length}  ")
-                        .Append($"totalTotal={head.Size}")
+                        .Append($"totalBlock={head.BlockSize}")
                         .AppendLine();
                     }
                     head = layer;
@@ -101,13 +87,13 @@ namespace SimpleHelpers.MultiAlg.Helpers
                     sb.Append($">>DimIndex: {layer.Index} -> ")
                         .Append($"step={layer.Stride}  ")
                         .Append($"length={layer.Length}  ")
-                        .Append($"total={layer.Size}")
+                        .Append($"block={layer.BlockSize}")
                         .AppendLine();
                 }
             }
             sb.Append($"totalStep={head.Stride}  ")
             .Append($"totalLength={head.Length}  ")
-            .Append($"totalSize={head.Size}");
+            .Append($"totalSize={head.BlockSize}");
         }
 
         public override string ToString()

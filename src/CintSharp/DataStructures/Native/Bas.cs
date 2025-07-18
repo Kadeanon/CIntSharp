@@ -46,7 +46,7 @@ namespace CintSharp.DataStructures.Native
         /// Ptr of coefficients,
         /// storing the offset of the column-major contracted GTO coefficients in env
         /// </summary>
-        public int pointerOfCoeff;
+        public int pointerOfCoeffs;
 
         /// <summary>
         /// Unused

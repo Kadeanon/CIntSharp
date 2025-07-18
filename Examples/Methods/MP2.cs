@@ -3,9 +3,9 @@ using SimpleHelpers.LinearAlg;
 using SimpleHelpers.MultiAlg;
 using SimpleHelpers.MultiAlg.TensorContract;
 
-namespace Examples
+namespace Examples.Methods
 {
-    internal class MP2
+    public class MP2
     {
         public RHF RHF { get; }
         public NDArray MOEri { get; }
@@ -15,7 +15,7 @@ namespace Examples
         public nint NOcc { get; }
         public nint NVir { get; }
 
-        public static NDArray compute_mo_eri(Matrix coeffs, NDArray ao_eri)
+        public static NDArray ToMOERI(Matrix coeffs, NDArray ao_eri)
         {
             var nmo = coeffs.Rows;
             Console.WriteLine("Computing MO ERI...");
@@ -23,13 +23,13 @@ namespace Examples
                 ([nmo, nmo, nmo, nmo]);
             NDArray mo_eris = NDArray.CreateUninitialized
                 ([nmo, nmo, nmo, nmo]);
-            NDArray coeffs_view = coeffs.AsNDArray();
+            var coeffs_view = coeffs.AsNDArray();
             var temp0_view = temp;
             var temp1_view = mo_eris;
-            ContractMethods.SimpleContract("ijkl,ip->pjkl", 1.0, ao_eri, coeffs_view, 0.0, temp0_view);
-            ContractMethods.SimpleContract("pjkl,jq->pqkl", 1.0, temp0_view, coeffs_view, 0.0, temp1_view);
-            ContractMethods.SimpleContract("pqkl,kr->pqrl", 1.0, temp1_view, coeffs_view, 0.0, temp0_view);
-            ContractMethods.SimpleContract("pqrl,ls->pqrs", 1.0, temp0_view, coeffs_view, 0.0, temp1_view);
+            NDArray.SimpleContract("ijkl,ip->pjkl", 1.0, ao_eri, coeffs_view, 0.0, temp0_view);
+            NDArray.SimpleContract("pjkl,jq->pqkl", 1.0, temp0_view, coeffs_view, 0.0, temp1_view);
+            NDArray.SimpleContract("pqkl,kr->pqrl", 1.0, temp1_view, coeffs_view, 0.0, temp0_view);
+            NDArray.SimpleContract("pqrl,ls->pqrs", 1.0, temp0_view, coeffs_view, 0.0, temp1_view);
             Console.WriteLine("MO ERI computed successfully.");
             return mo_eris;
         }
@@ -38,7 +38,7 @@ namespace Examples
         {
             RHF = rhf;
             Coeffs = rhf.C!;
-            MOEri = compute_mo_eri(Coeffs, rhf.ERI);
+            MOEri = ToMOERI(Coeffs, rhf.ERI);
             MOEnergies = rhf.Es!;
             nint nmo = Coeffs.Rows;
             NOcc = rhf.Atoms.Sum(atom => atom.AtomNumber) / 2; ;

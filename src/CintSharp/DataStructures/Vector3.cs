@@ -27,9 +27,20 @@ namespace CintSharp.DataStructures
 
         public static Vector3 Zero { get; } = new(0, 0, 0);
 
-        public double Length => Math.Sqrt(this * this);
+        public readonly double Length => Math.Sqrt(this * this);
 
-        public double LengthSq => this * this;
+        public readonly double LengthSq => this * this;
+
+        public readonly double Sum => X + Y + Z;
+
+        public readonly double this[int index]
+            => index switch
+            {
+                0 => X,
+                1 => Y,
+                2 => Z,
+                _ => throw new IndexOutOfRangeException("Index must be 0, 1, or 2.")
+            };
 
         public Span<double> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.As<Vector3, double>(ref this), 3);
 

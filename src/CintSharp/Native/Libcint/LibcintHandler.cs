@@ -51,7 +51,7 @@ namespace CintSharp.Native.Libcint
             return Instance.CINTgto_normDelegate(angMomentum, exp);
         }
 
-        public static void GetOptimizer(ref IntPtr opt, CIntEnvs envs, string apiName)
+        public static void GetOptimizer(ref IntPtr opt, IEnvorinment envs, string apiName)
         {
             if (Instance == null)
             {
@@ -85,7 +85,7 @@ namespace CintSharp.Native.Libcint
             }
         }
 
-        public static Intor CreateIntor(CIntEnvs envs, string apiName)
+        public static Intor CreateIntor(IEnvorinment envs, string apiName)
         {
             if (Instance == null)
             {

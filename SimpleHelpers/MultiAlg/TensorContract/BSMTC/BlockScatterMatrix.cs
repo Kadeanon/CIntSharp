@@ -5,22 +5,18 @@ using System.Runtime.CompilerServices;
 
 namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
 {
-    internal class BlockScatterMatrix(NDArray data,
+    internal class BlockScatterMatrix(NDArray data, nint offset,
         SingleIndice[] rowIndices, int rowBlock,
         SingleIndice[] colIndices, int colBlock) : IDisposable
     {
         readonly NDArray data = data;
-        #region Rows
+        nint offset = offset;
         nint[] rowScatters = BuildScatters(rowIndices, rowBlock);
         public nint rowLength = IndiceUtils.TotalLength(rowIndices);
         public int rowBlock = rowBlock;
-        #endregion Rows
-        #region Cols
         nint[] colScatters = BuildScatters(colIndices, colBlock);
         public nint colLength = IndiceUtils.TotalLength(colIndices);
         public int colBlock = colBlock;
-
-        #endregion Cols
 
         internal void Pack(Span<double> buffer, nint iStart, int iLength, nint jStart, int jLength, bool trans = false)
         {
@@ -179,8 +175,8 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
 
         public ref double GetHeadRef()
         {
-            Span<nint> head = stackalloc nint[data.Rank];
-            return ref data[head];
+            Span<nint> zeros = stackalloc nint[data.Rank];
+            return ref Unsafe.Add(ref data[zeros], offset);
         }
 
         public void Transpose()
@@ -212,7 +208,7 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
                 size *= indices[i].Length;
             }
             nint blockCount = (size + blockSize - 1) / blockSize;
-            var blockScatter = ContractMethods.ContractNintPool.Rent((int)(blockCount) * (blockSize + 1));
+            var blockScatter = NDArray.ContractNintPool.Rent((int)(blockCount) * (blockSize + 1));
             int indiceCount = indices.Length;
             nint[] lengthBuffer = new nint[indiceCount - 1];
             nint[] strideBuffer = new nint[indiceCount - 1];
@@ -337,10 +333,10 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
             var colScatterMemory = colScatters.AsMemory((int)jTotalStart, jTotalLength);
             var rowScatterMemory = rowScatters.AsMemory((int)iTotalStart, iTotalLength);
             if (trans)
-                return new(data, colScatterMemory, jLength, colBlock,
+                return new(data, offset, colScatterMemory, jLength, colBlock,
                     rowScatterMemory, iLength, rowBlock);
             else
-                return new(data, rowScatterMemory, iLength, rowBlock,
+                return new(data, offset, rowScatterMemory, iLength, rowBlock,
                     colScatterMemory, jLength, colBlock);
         }
 
@@ -348,12 +344,13 @@ namespace SimpleHelpers.MultiAlg.TensorContract.BSMTC
         {
             if (rowScatters != null)
             {
-                ContractMethods.ContractNintPool.Return(rowScatters, clearArray: true);
+                NDArray.ContractNintPool.Return(rowScatters, clearArray: true);
             }
             if (colScatters != null)
             {
-                ContractMethods.ContractNintPool.Return(colScatters, clearArray: true);
+                NDArray.ContractNintPool.Return(colScatters, clearArray: true);
             }
         }
+        public void AddOffset(nint stride) => offset += stride;
     }
 }

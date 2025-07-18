@@ -2,9 +2,9 @@
 using SimpleHelpers.MultiAlg.TensorContract.SimpleTC;
 using System.Buffers;
 
-namespace SimpleHelpers.MultiAlg.TensorContract
+namespace SimpleHelpers.MultiAlg
 {
-    public static partial class ContractMethods
+    public partial class NDArray
     {
         #region Simple TC
         public static NDArray SimpleContract

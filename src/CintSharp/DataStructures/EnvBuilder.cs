@@ -118,8 +118,7 @@ namespace CintSharp.DataStructures
                 Shells shells = BasisDict[basisName, atom.AtomNumber];
                 foreach (var shell in shells)
                 {
-                    Bas shellBas = new();
-                    shell.CopyToBasis(ref shellBas, iatom, Envs);
+                    Bas shellBas = shell.CopyToBasis(iatom);
                     Bases.Add(shellBas);
                     var cgto = shellBas.CgtoSpheric();
                     shellLength.Add(cgto);

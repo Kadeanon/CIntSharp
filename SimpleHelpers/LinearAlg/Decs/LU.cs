@@ -1,10 +1,4 @@
 ﻿using MKLNET;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SimpleHelpers.LinearAlg.Decs
 {
@@ -12,7 +6,7 @@ namespace SimpleHelpers.LinearAlg.Decs
     {
         readonly Matrix matrix;
         readonly int[] ipiv;
-        int n;
+        readonly int n;
         bool computed;
 
         public LU(Matrix mat, bool inplace = false)
@@ -21,7 +15,17 @@ namespace SimpleHelpers.LinearAlg.Decs
                 throw new NotImplementedException("Matrix size exceeds int.MaxValue, not supported yet.");
             ArgumentOutOfRangeException.ThrowIfNotEqual(mat.Rows, mat.Cols, nameof(mat));
             n = (int)mat.Rows;
-            matrix = inplace ? mat : mat.Clone();
+            if (inplace)
+            {
+                if (mat.ColStride != 1)
+                    throw new ArgumentException("In-place operation " +
+                        "requires row-major matrix.", nameof(mat));
+                matrix = mat;
+            }
+            else
+            {
+                matrix = mat.Clone();
+            }
             ipiv = new int[n];
             computed = false;
         }
@@ -37,15 +41,15 @@ namespace SimpleHelpers.LinearAlg.Decs
                 if (info > 0)
                 {
                     int index = info - 1;
-                    throw new InvalidOperationException(
+                    throw new LinalgException("dgetrf", info,
                         "LU decomposition failed, " +
                         $"the {index} diagonal element of matrix is zero, " +
-                        $"and the solve could not be completed..");
+                        $"and the solve could not be completed.");
                 }
                 else
                 {
-                    throw new InvalidOperationException(
-                        $"LAPACK getrf failed with info = {info}");
+                    throw new LinalgException("dgetrf", info,
+                        $"LAPACK getrf failed.");
                 }
             }
             computed = true;
@@ -56,14 +60,15 @@ namespace SimpleHelpers.LinearAlg.Decs
             Compute();
             if (b.Length != n)
                 throw new ArgumentException("RHS vector size mismatch", nameof(b));
-            var x = b.Clone();  // 复制右端向量
-
+            var x = b.Clone();
             var info = Lapack.getrs(Layout.RowMajor, TransChar.No,
-                n, nrhs: 1, matrix.GetSpan(), n, ipiv, x.GetSpan(), 1);
-
-
+                n, nrhs: 1,
+                matrix.GetSpan(), (int)matrix.RowStride,
+                ipiv, 
+                x.GetSpan(), 1);
             if (info != 0)
-                throw new InvalidOperationException($"LAPACK getrs failed with info = {info}");
+                throw new LinalgException("dgetrs", info, 
+                    $"LAPACK getrs failed with info = {info}");
 
             return x;
         }
@@ -76,9 +81,13 @@ namespace SimpleHelpers.LinearAlg.Decs
             int nrhs = (int)b.Cols;
             b = b.MakeRowMajor();
             var info = Lapack.getrs(Layout.RowMajor, TransChar.No,
-                n, nrhs, matrix.GetSpan(), n, ipiv, b.GetSpan(), (int)b.RowStride);
+                n, nrhs,
+                matrix.GetSpan(), (int)matrix.RowStride,
+                ipiv, 
+                b.GetSpan(), (int)b.RowStride);
             if (info != 0)
-                throw new InvalidOperationException($"LAPACK getrs failed with info = {info}");
+                throw new LinalgException("dgetrs", info,
+                    $"LAPACK getrs failed.");
             return b;
         }
     }

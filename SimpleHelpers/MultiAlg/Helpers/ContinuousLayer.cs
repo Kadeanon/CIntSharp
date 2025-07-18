@@ -9,49 +9,24 @@ using System.Threading.Tasks;
 namespace SimpleHelpers.MultiAlg.Helpers
 {
     public unsafe struct ContinuousLayer
+        (SingleIndice dim, int index, bool isHead = false)
     {
-        public bool IsHead { get; internal set; }
-        public int Index { get; internal set; }
-        public nint Start { get; internal set; }
-        public nint Length { get; internal set; }
-        public nint Size { get; internal set; }
-        public nint Stride { get; internal set; }
+        public bool IsHead { get; internal set; } = isHead;
+        public int Index { get; internal set; } = index;
+        public nint Length { get; internal set; } = dim.Length;
+        public nint BlockSize { get; internal set; } = dim.Length * dim.Stride;
+        public nint Stride { get; internal set; } = dim.Stride;
 
-        public static ContinuousLayer FromDiminfo(SingleIndice dim, int index)
+        public override readonly string ToString()
         {
-            return new ContinuousLayer()
+            if(IsHead)
             {
-                IsHead = false,
-                Index = index,
-                Length = dim.Length,
-                Size = dim.Length * dim.Stride,
-                Stride = dim.Stride,
-                Start = 0
-            };
-        }
-
-        public static ContinuousLayer HeadFromDiminfo(SingleIndice dim, int index)
-        {
-            return new ContinuousLayer()
-            {
-                IsHead = true,
-                Index = index,
-                Length = dim.Length,
-                Size = dim.Length * dim.Stride,
-                Stride = dim.Stride,
-                Start = 0
-            };
-        }
-
-        internal bool TryAddDim(SingleIndice dim)
-        {
-            if (dim.Stride == Size)
-            {
-                Length *= dim.Length;
-                Size *= dim.Length;
-                return true;
+                return $"Head Layer {Index}: Length={Length}, Size={BlockSize}, Stride={Stride}";
             }
-            return false;
+            else
+            {
+                return $"Layer {Index}: Length={Length}, Size={BlockSize}, Stride={Stride}";
+            }
         }
     }
 }
